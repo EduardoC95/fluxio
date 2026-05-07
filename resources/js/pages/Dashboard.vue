@@ -25,7 +25,7 @@ defineProps<{
         <PageIntro
             eyebrow="Fluxio"
             title="Painel operacional"
-            description="Uma visão consolidada do comercial, compras, calendário e financeiro, com uma linguagem visual quente e editorial inspirada na imagem de referência."
+            description="Uma visão consolidada do comercial, compras, calendário e financeiro."
         />
 
         <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
