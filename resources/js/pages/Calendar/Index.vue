@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Head, router, useForm } from '@inertiajs/vue3';
-import FullCalendar from '@fullcalendar/vue3';
+import ptLocale from '@fullcalendar/core/locales/pt';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import ptLocale from '@fullcalendar/core/locales/pt';
+import FullCalendar from '@fullcalendar/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageIntro from '@/components/fluxio/PageIntro.vue';
 import { Button } from '@/components/ui/button';
@@ -60,7 +60,10 @@ const calendarOptions = computed(() => ({
     height: 'auto',
     locale: ptLocale,
     eventClick: ({ event }: any) => {
-        const match = props.records.find((record) => Number(record.id) === Number(event.id));
+        const match = props.records.find(
+            (record) => Number(record.id) === Number(event.id),
+        );
+
         if (match) {
             editRecord(match);
         }
@@ -108,6 +111,7 @@ function submit() {
             preserveScroll: true,
             onSuccess: resetForm,
         });
+
         return;
     }
 
@@ -118,7 +122,10 @@ function submit() {
 }
 
 function destroyRecord() {
-    if (!editingId.value) return;
+    if (!editingId.value) {
+        return;
+    }
+
     router.delete(`${props.endpoints.delete}/${editingId.value}`, {
         preserveScroll: true,
         onSuccess: resetForm,
@@ -137,74 +144,145 @@ function destroyRecord() {
         />
 
         <section class="grid gap-6 xl:grid-cols-[1.35fr_0.9fr]">
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <div class="grid gap-4 md:grid-cols-3">
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Filtrar por utilizador</span>
-                        <select v-model="filters.user_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="filters.user_id"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option :value="null">Todos</option>
-                            <option v-for="user in users" :key="String(user.id)" :value="user.id">{{ user.name }}</option>
+                            <option
+                                v-for="user in users"
+                                :key="String(user.id)"
+                                :value="user.id"
+                            >
+                                {{ user.name }}
+                            </option>
                         </select>
                     </label>
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Filtrar por entidade</span>
-                        <select v-model="filters.entity_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="filters.entity_id"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option :value="null">Todas</option>
-                            <option v-for="entity in entities" :key="String(entity.id)" :value="entity.id">{{ entity.label }}</option>
+                            <option
+                                v-for="entity in entities"
+                                :key="String(entity.id)"
+                                :value="entity.id"
+                            >
+                                {{ entity.label }}
+                            </option>
                         </select>
                     </label>
                     <div class="flex items-end">
-                        <Button type="button" @click="applyFilters">Aplicar filtros</Button>
+                        <Button type="button" @click="applyFilters"
+                            >Aplicar filtros</Button
+                        >
                     </div>
                 </div>
 
-                <div class="mt-6 overflow-hidden rounded-[1.8rem] border border-border/70 bg-background/60 p-3">
+                <div
+                    class="mt-6 overflow-hidden rounded-[1.8rem] border border-border/70 bg-background/60 p-3"
+                >
                     <FullCalendar :options="calendarOptions" />
                 </div>
             </article>
 
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
-                <h2 class="font-serif-display text-3xl text-foreground">{{ editingId ? 'Editar atividade' : 'Nova atividade' }}</h2>
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
+                <h2 class="font-serif-display text-3xl text-foreground">
+                    {{ editingId ? 'Editar atividade' : 'Nova atividade' }}
+                </h2>
 
                 <form class="mt-5 space-y-4" @submit.prevent="submit">
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Utilizador</span>
-                        <select v-model="form.user_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="form.user_id"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option :value="null">Selecionar</option>
-                            <option v-for="user in users" :key="String(user.id)" :value="user.id">{{ user.name }}</option>
+                            <option
+                                v-for="user in users"
+                                :key="String(user.id)"
+                                :value="user.id"
+                            >
+                                {{ user.name }}
+                            </option>
                         </select>
                     </label>
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Entidade</span>
-                        <select v-model="form.entity_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="form.entity_id"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option :value="null">Sem entidade</option>
-                            <option v-for="entity in entities" :key="String(entity.id)" :value="entity.id">{{ entity.label }}</option>
+                            <option
+                                v-for="entity in entities"
+                                :key="String(entity.id)"
+                                :value="entity.id"
+                            >
+                                {{ entity.label }}
+                            </option>
                         </select>
                     </label>
                     <div class="grid gap-4 md:grid-cols-2">
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Tipo</span>
-                            <select v-model="form.calendar_type_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                            <select
+                                v-model="form.calendar_type_id"
+                                class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                            >
                                 <option :value="null">Selecionar</option>
-                                <option v-for="type in types" :key="String(type.id)" :value="type.id">{{ type.name }}</option>
+                                <option
+                                    v-for="type in types"
+                                    :key="String(type.id)"
+                                    :value="type.id"
+                                >
+                                    {{ type.name }}
+                                </option>
                             </select>
                         </label>
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Ação</span>
-                            <select v-model="form.calendar_action_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                            <select
+                                v-model="form.calendar_action_id"
+                                class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                            >
                                 <option :value="null">Selecionar</option>
-                                <option v-for="action in actions" :key="String(action.id)" :value="action.id">{{ action.name }}</option>
+                                <option
+                                    v-for="action in actions"
+                                    :key="String(action.id)"
+                                    :value="action.id"
+                                >
+                                    {{ action.name }}
+                                </option>
                             </select>
                         </label>
                     </div>
                     <div class="grid gap-4 md:grid-cols-2">
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Data e hora</span>
-                            <Input v-model="form.scheduled_for" type="datetime-local" />
+                            <Input
+                                v-model="form.scheduled_for"
+                                type="datetime-local"
+                            />
                         </label>
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Duração (min)</span>
-                            <Input v-model="form.duration_minutes" type="number" min="5" />
+                            <Input
+                                v-model="form.duration_minutes"
+                                type="number"
+                                min="5"
+                            />
                         </label>
                     </div>
                     <label class="space-y-2 text-sm">
@@ -213,26 +291,54 @@ function destroyRecord() {
                     </label>
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Estado</span>
-                        <select v-model="form.status" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="form.status"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option value="scheduled">Agendada</option>
                             <option value="completed">Concluída</option>
                             <option value="cancelled">Cancelada</option>
                         </select>
                     </label>
                     <div class="grid gap-4 md:grid-cols-2">
-                        <label class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
-                            <input v-model="form.shared" type="checkbox" class="size-4 rounded" />
+                        <label
+                            class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                        >
+                            <input
+                                v-model="form.shared"
+                                type="checkbox"
+                                class="size-4 rounded"
+                            />
                             Partilha
                         </label>
-                        <label class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
-                            <input v-model="form.knowledge" type="checkbox" class="size-4 rounded" />
+                        <label
+                            class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                        >
+                            <input
+                                v-model="form.knowledge"
+                                type="checkbox"
+                                class="size-4 rounded"
+                            />
                             Conhecimento
                         </label>
                     </div>
                     <div class="flex gap-3 pt-2">
-                        <Button type="submit">{{ editingId ? 'Guardar alterações' : 'Criar atividade' }}</Button>
-                        <Button type="button" variant="secondary" @click="resetForm">Limpar</Button>
-                        <Button v-if="editingId" type="button" variant="destructive" @click="destroyRecord">Apagar</Button>
+                        <Button type="submit">{{
+                            editingId ? 'Guardar alterações' : 'Criar atividade'
+                        }}</Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            @click="resetForm"
+                            >Limpar</Button
+                        >
+                        <Button
+                            v-if="editingId"
+                            type="button"
+                            variant="destructive"
+                            @click="destroyRecord"
+                            >Apagar</Button
+                        >
                     </div>
                 </form>
             </article>

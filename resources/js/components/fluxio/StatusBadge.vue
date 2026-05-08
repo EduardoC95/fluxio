@@ -9,11 +9,25 @@ const props = defineProps<{
 const theme = computed(() => {
     const value = String(props.value ?? '').toLowerCase();
 
-    if (['active', 'ativo', 'paid', 'paga', 'closed', 'fechado', 'completed'].includes(value)) {
+    if (
+        [
+            'active',
+            'ativo',
+            'paid',
+            'paga',
+            'closed',
+            'fechado',
+            'completed',
+        ].includes(value)
+    ) {
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
     }
 
-    if (['draft', 'rascunho', 'pending', 'pendente', 'scheduled'].includes(value)) {
+    if (
+        ['draft', 'rascunho', 'pending', 'pendente', 'scheduled'].includes(
+            value,
+        )
+    ) {
         return 'bg-amber-100 text-amber-900 border-amber-200';
     }
 
@@ -34,7 +48,10 @@ const theme = computed(() => {
 </script>
 
 <template>
-    <Badge class="rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]" :class="theme">
+    <Badge
+        class="rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[0.16em] uppercase"
+        :class="theme"
+    >
         {{ typeof value === 'boolean' ? (value ? 'Sim' : 'Não') : value }}
     </Badge>
 </template>

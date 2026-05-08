@@ -16,7 +16,12 @@ const props = defineProps<{
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Faturas Fornecedor', href: '/financeiro/faturas-fornecedor' }],
+        breadcrumbs: [
+            {
+                title: 'Faturas Fornecedor',
+                href: '/financeiro/faturas-fornecedor',
+            },
+        ],
     },
 });
 
@@ -69,6 +74,7 @@ function submit() {
             forceFormData: true,
             onSuccess: resetForm,
         });
+
         return;
     }
 
@@ -80,7 +86,9 @@ function submit() {
 }
 
 function destroyRecord(record: Record<string, any>) {
-    router.delete(`${props.endpoints.delete}/${record.id}`, { preserveScroll: true });
+    router.delete(`${props.endpoints.delete}/${record.id}`, {
+        preserveScroll: true,
+    });
 }
 </script>
 
@@ -94,12 +102,16 @@ function destroyRecord(record: Record<string, any>) {
             description="Documentos privados, comprovativos de pagamento e envio por email quando a fatura passa a paga."
         >
             <template #actions>
-                <Button type="button" variant="secondary" @click="resetForm">Nova fatura</Button>
+                <Button type="button" variant="secondary" @click="resetForm"
+                    >Nova fatura</Button
+                >
             </template>
         </PageIntro>
 
         <section class="grid gap-6 xl:grid-cols-[1.15fr_0.95fr]">
-            <article class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <div class="overflow-x-auto p-6">
                     <table class="min-w-full text-left text-sm">
                         <thead class="text-muted-foreground">
@@ -115,21 +127,52 @@ function destroyRecord(record: Record<string, any>) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="record in records" :key="String(record.id)" class="border-b border-border/60 last:border-none">
+                            <tr
+                                v-for="record in records"
+                                :key="String(record.id)"
+                                class="border-b border-border/60 last:border-none"
+                            >
                                 <td class="py-4">{{ record.invoice_date }}</td>
-                                <td class="py-4 font-medium">{{ record.number }}</td>
-                                <td class="py-4">{{ record.supplier_name }}</td>
-                                <td class="py-4">{{ record.supplier_order_number }}</td>
-                                <td class="py-4">
-                                    <a v-if="record.document_url" :href="record.document_url" class="underline">Abrir</a>
-                                    <span v-else class="text-muted-foreground">Sem ficheiro</span>
+                                <td class="py-4 font-medium">
+                                    {{ record.number }}
                                 </td>
-                                <td class="py-4">€ {{ Number(record.total ?? 0).toFixed(2) }}</td>
-                                <td class="py-4"><StatusBadge :value="record.status" /></td>
+                                <td class="py-4">{{ record.supplier_name }}</td>
+                                <td class="py-4">
+                                    {{ record.supplier_order_number }}
+                                </td>
+                                <td class="py-4">
+                                    <a
+                                        v-if="record.document_url"
+                                        :href="record.document_url"
+                                        class="underline"
+                                        >Abrir</a
+                                    >
+                                    <span v-else class="text-muted-foreground"
+                                        >Sem ficheiro</span
+                                    >
+                                </td>
+                                <td class="py-4">
+                                    € {{ Number(record.total ?? 0).toFixed(2) }}
+                                </td>
+                                <td class="py-4">
+                                    <StatusBadge :value="record.status" />
+                                </td>
                                 <td class="py-4">
                                     <div class="flex gap-2">
-                                        <Button type="button" size="sm" variant="secondary" @click="editRecord(record)">Editar</Button>
-                                        <Button type="button" size="sm" variant="destructive" @click="destroyRecord(record)">Apagar</Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="secondary"
+                                            @click="editRecord(record)"
+                                            >Editar</Button
+                                        >
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="destructive"
+                                            @click="destroyRecord(record)"
+                                            >Apagar</Button
+                                        >
                                     </div>
                                 </td>
                             </tr>
@@ -138,7 +181,9 @@ function destroyRecord(record: Record<string, any>) {
                 </div>
             </article>
 
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <h2 class="font-serif-display text-3xl text-foreground">
                     {{ editingId ? 'Editar fatura' : 'Nova fatura' }}
                 </h2>
@@ -151,9 +196,18 @@ function destroyRecord(record: Record<string, any>) {
                         </label>
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Fornecedor</span>
-                            <select v-model="form.supplier_entity_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                            <select
+                                v-model="form.supplier_entity_id"
+                                class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                            >
                                 <option :value="null">Selecionar</option>
-                                <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">{{ supplier.label }}</option>
+                                <option
+                                    v-for="supplier in suppliers"
+                                    :key="supplier.id"
+                                    :value="supplier.id"
+                                >
+                                    {{ supplier.label }}
+                                </option>
                             </select>
                         </label>
                     </div>
@@ -171,42 +225,94 @@ function destroyRecord(record: Record<string, any>) {
 
                     <div class="grid gap-4 md:grid-cols-2">
                         <label class="space-y-2 text-sm">
-                            <span class="font-medium">Encomenda fornecedor</span>
-                            <select v-model="form.supplier_order_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                            <span class="font-medium"
+                                >Encomenda fornecedor</span
+                            >
+                            <select
+                                v-model="form.supplier_order_id"
+                                class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                            >
                                 <option :value="null">Selecionar</option>
-                                <option v-for="order in supplierOrders" :key="String(order.id)" :value="order.id">{{ order.label }}</option>
+                                <option
+                                    v-for="order in supplierOrders"
+                                    :key="String(order.id)"
+                                    :value="order.id"
+                                >
+                                    {{ order.label }}
+                                </option>
                             </select>
                         </label>
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Valor total</span>
-                            <Input v-model="form.total" type="number" min="0" step="0.01" />
+                            <Input
+                                v-model="form.total"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                            />
                         </label>
                     </div>
 
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Documento</span>
-                        <input type="file" class="block w-full text-sm" @change="form.document = (($event.target as HTMLInputElement).files?.[0] ?? null)" />
+                        <input
+                            type="file"
+                            class="block w-full text-sm"
+                            @change="
+                                form.document =
+                                    ($event.target as HTMLInputElement)
+                                        .files?.[0] ?? null
+                            "
+                        />
                     </label>
 
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Estado</span>
-                        <select v-model="form.status" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
-                            <option value="pending">Pendente de pagamento</option>
+                        <select
+                            v-model="form.status"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
+                            <option value="pending">
+                                Pendente de pagamento
+                            </option>
                             <option value="paid">Paga</option>
                         </select>
                     </label>
 
-                    <div v-if="showPaymentPrompt" class="rounded-[1.5rem] bg-secondary/45 p-4 text-sm text-muted-foreground">
-                        <p class="font-medium text-foreground">Pretende enviar o comprovativo ao fornecedor?</p>
-                        <p class="mt-1">Ao anexar o comprovativo e guardar, o Fluxio tenta enviar o email com o anexo para o fornecedor.</p>
+                    <div
+                        v-if="showPaymentPrompt"
+                        class="rounded-[1.5rem] bg-secondary/45 p-4 text-sm text-muted-foreground"
+                    >
+                        <p class="font-medium text-foreground">
+                            Pretende enviar o comprovativo ao fornecedor?
+                        </p>
+                        <p class="mt-1">
+                            Ao anexar o comprovativo e guardar, o Fluxio tenta
+                            enviar o email com o anexo para o fornecedor.
+                        </p>
                         <div class="mt-3">
-                            <input type="file" class="block w-full text-sm" @change="form.payment_proof = (($event.target as HTMLInputElement).files?.[0] ?? null)" />
+                            <input
+                                type="file"
+                                class="block w-full text-sm"
+                                @change="
+                                    form.payment_proof =
+                                        ($event.target as HTMLInputElement)
+                                            .files?.[0] ?? null
+                                "
+                            />
                         </div>
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <Button type="submit">{{ editingId ? 'Guardar alterações' : 'Criar fatura' }}</Button>
-                        <Button type="button" variant="secondary" @click="resetForm">Limpar</Button>
+                        <Button type="submit">{{
+                            editingId ? 'Guardar alterações' : 'Criar fatura'
+                        }}</Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            @click="resetForm"
+                            >Limpar</Button
+                        >
                     </div>
                 </form>
             </article>

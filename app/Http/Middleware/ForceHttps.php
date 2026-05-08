@@ -15,9 +15,12 @@ class ForceHttps
     {
         if (config('app.force_https', true)
             && ! app()->runningUnitTests()
-            && ! $request->secure()
-            && $request->method() === 'GET') {
-            return redirect()->secure($request->getRequestUri(), 301);
+            && ! $request->secure()) {
+            if ($request->isMethodSafe()) {
+                return redirect()->secure($request->getRequestUri(), 301);
+            }
+
+            abort(403, 'HTTPS is required.');
         }
 
         return $next($request);

@@ -43,25 +43,62 @@ function submit() {
         />
 
         <section class="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
-                <p class="font-serif-display text-2xl text-foreground">Pré-visualização</p>
-                <div class="mt-4 rounded-[1.8rem] bg-sidebar p-6 text-sidebar-foreground">
-                    <img v-if="record.logo_url" :src="record.logo_url" alt="" class="h-14 rounded-2xl object-contain" />
-                    <div v-else class="flex size-14 items-center justify-center rounded-2xl bg-[rgba(245,235,219,0.96)] text-sm font-bold tracking-[0.3em] text-sidebar">
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
+                <p class="font-serif-display text-2xl text-foreground">
+                    Pré-visualização
+                </p>
+                <div
+                    class="mt-4 rounded-[1.8rem] bg-sidebar p-6 text-sidebar-foreground"
+                >
+                    <img
+                        v-if="record.logo_url"
+                        :src="record.logo_url"
+                        alt=""
+                        class="h-14 rounded-2xl object-contain"
+                    />
+                    <div
+                        v-else
+                        class="flex size-14 items-center justify-center rounded-2xl bg-[rgba(245,235,219,0.96)] text-sm font-bold tracking-[0.3em] text-sidebar"
+                    >
                         FX
                     </div>
-                    <p class="mt-5 font-serif-display text-3xl">{{ form.name || 'Fluxio' }}</p>
-                    <p class="mt-2 text-sm leading-6 text-sidebar-foreground/70">{{ form.address }}</p>
-                    <p class="text-sm leading-6 text-sidebar-foreground/70">{{ form.postal_code }} {{ form.city }}</p>
-                    <p class="mt-2 text-sm leading-6 text-sidebar-foreground/70">NIF {{ form.tax_number }}</p>
+                    <p class="mt-5 font-serif-display text-3xl">
+                        {{ form.name || 'Fluxio' }}
+                    </p>
+                    <p
+                        class="mt-2 text-sm leading-6 text-sidebar-foreground/70"
+                    >
+                        {{ form.address }}
+                    </p>
+                    <p class="text-sm leading-6 text-sidebar-foreground/70">
+                        {{ form.postal_code }} {{ form.city }}
+                    </p>
+                    <p
+                        class="mt-2 text-sm leading-6 text-sidebar-foreground/70"
+                    >
+                        NIF {{ form.tax_number }}
+                    </p>
                 </div>
             </article>
 
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <form class="space-y-4" @submit.prevent="submit">
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Logotipo empresa</span>
-                        <input type="file" accept="image/*" class="block w-full text-sm" @change="form.logo = (($event.target as HTMLInputElement).files?.[0] ?? null)" />
+                        <input
+                            type="file"
+                            accept="image/*"
+                            class="block w-full text-sm"
+                            @change="
+                                form.logo =
+                                    ($event.target as HTMLInputElement)
+                                        .files?.[0] ?? null
+                            "
+                        />
                     </label>
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Nome</span>

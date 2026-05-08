@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class CompanySettingsTest extends TestCase
@@ -18,6 +19,7 @@ class CompanySettingsTest extends TestCase
         Storage::fake('local');
 
         $user = User::factory()->create();
+        $user->givePermissionTo(Permission::findOrCreate('empresa.update'));
 
         $response = $this
             ->actingAs($user)

@@ -38,9 +38,15 @@ defineProps<{
         </section>
 
         <section class="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
-                <h2 class="font-serif-display text-3xl text-foreground">Propostas recentes</h2>
-                <p class="mt-1 text-sm text-muted-foreground">Acompanhamento do pipeline comercial.</p>
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
+                <h2 class="font-serif-display text-3xl text-foreground">
+                    Propostas recentes
+                </h2>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Acompanhamento do pipeline comercial.
+                </p>
 
                 <div class="mt-5 overflow-x-auto">
                     <table class="min-w-full text-left text-sm">
@@ -50,7 +56,9 @@ defineProps<{
                                 <th class="pb-3 font-medium">Cliente</th>
                                 <th class="pb-3 font-medium">Data</th>
                                 <th class="pb-3 font-medium">Estado</th>
-                                <th class="pb-3 text-right font-medium">Total</th>
+                                <th class="pb-3 text-right font-medium">
+                                    Total
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -59,13 +67,22 @@ defineProps<{
                                 :key="String(proposal.id)"
                                 class="border-b border-border/60 last:border-none"
                             >
-                                <td class="py-4 font-medium">{{ proposal.number }}</td>
-                                <td class="py-4">{{ proposal.customer }}</td>
-                                <td class="py-4">{{ proposal.proposal_date }}</td>
-                                <td class="py-4">
-                                    <StatusBadge :value="String(proposal.status)" />
+                                <td class="py-4 font-medium">
+                                    {{ proposal.number }}
                                 </td>
-                                <td class="py-4 text-right">€ {{ Number(proposal.total ?? 0).toFixed(2) }}</td>
+                                <td class="py-4">{{ proposal.customer }}</td>
+                                <td class="py-4">
+                                    {{ proposal.proposal_date }}
+                                </td>
+                                <td class="py-4">
+                                    <StatusBadge
+                                        :value="String(proposal.status)"
+                                    />
+                                </td>
+                                <td class="py-4 text-right">
+                                    €
+                                    {{ Number(proposal.total ?? 0).toFixed(2) }}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -73,32 +90,69 @@ defineProps<{
             </article>
 
             <div class="space-y-6">
-                <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
-                    <h2 class="font-serif-display text-2xl text-foreground">Financeiro pendente</h2>
+                <article
+                    class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+                >
+                    <h2 class="font-serif-display text-2xl text-foreground">
+                        Financeiro pendente
+                    </h2>
                     <div class="mt-4 space-y-4">
-                        <div v-for="invoice in pendingInvoices" :key="String(invoice.id)" class="rounded-[1.4rem] bg-secondary/45 p-4">
+                        <div
+                            v-for="invoice in pendingInvoices"
+                            :key="String(invoice.id)"
+                            class="rounded-[1.4rem] bg-secondary/45 p-4"
+                        >
                             <div class="flex items-start justify-between gap-3">
                                 <div>
-                                    <p class="font-semibold text-foreground">{{ invoice.number }}</p>
-                                    <p class="text-sm text-muted-foreground">{{ invoice.supplier }}</p>
+                                    <p class="font-semibold text-foreground">
+                                        {{ invoice.number }}
+                                    </p>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{ invoice.supplier }}
+                                    </p>
                                 </div>
                                 <StatusBadge :value="String(invoice.status)" />
                             </div>
-                            <div class="mt-3 flex items-center justify-between text-sm">
-                                <span class="text-muted-foreground">Vence em {{ invoice.due_date }}</span>
-                                <span class="font-semibold text-foreground">€ {{ Number(invoice.total ?? 0).toFixed(2) }}</span>
+                            <div
+                                class="mt-3 flex items-center justify-between text-sm"
+                            >
+                                <span class="text-muted-foreground"
+                                    >Vence em {{ invoice.due_date }}</span
+                                >
+                                <span class="font-semibold text-foreground"
+                                    >€
+                                    {{
+                                        Number(invoice.total ?? 0).toFixed(2)
+                                    }}</span
+                                >
                             </div>
                         </div>
                     </div>
                 </article>
 
-                <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
-                    <h2 class="font-serif-display text-2xl text-foreground">Próximas atividades</h2>
+                <article
+                    class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+                >
+                    <h2 class="font-serif-display text-2xl text-foreground">
+                        Próximas atividades
+                    </h2>
                     <div class="mt-4 space-y-4">
-                        <div v-for="event in upcomingEvents" :key="String(event.id)" class="rounded-[1.4rem] border border-border/70 bg-background/65 p-4">
-                            <p class="font-semibold text-foreground">{{ event.title }}</p>
-                            <p class="mt-1 text-sm text-muted-foreground">{{ event.scheduled_for }}</p>
-                            <p class="mt-2 text-sm leading-6 text-muted-foreground">{{ event.description }}</p>
+                        <div
+                            v-for="event in upcomingEvents"
+                            :key="String(event.id)"
+                            class="rounded-[1.4rem] border border-border/70 bg-background/65 p-4"
+                        >
+                            <p class="font-semibold text-foreground">
+                                {{ event.title }}
+                            </p>
+                            <p class="mt-1 text-sm text-muted-foreground">
+                                {{ event.scheduled_for }}
+                            </p>
+                            <p
+                                class="mt-2 text-sm leading-6 text-muted-foreground"
+                            >
+                                {{ event.description }}
+                            </p>
                         </div>
                     </div>
                 </article>

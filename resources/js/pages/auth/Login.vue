@@ -15,7 +15,8 @@ import { request } from '@/routes/password';
 defineOptions({
     layout: {
         title: 'Entrar no Fluxio',
-        description: 'Introduza o seu email e password para aceder ao painel de gestão.',
+        description:
+            'Introduza o seu email e password para aceder ao painel de gestão.',
     },
 });
 
@@ -105,7 +106,9 @@ defineProps<{
             v-if="canRegister"
         >
             Ainda não existe conta?
-            <TextLink :href="register()" :tabindex="5">Criar acesso inicial</TextLink>
+            <TextLink :href="register()" :tabindex="5"
+                >Criar acesso inicial</TextLink
+            >
         </div>
     </Form>
 </template>

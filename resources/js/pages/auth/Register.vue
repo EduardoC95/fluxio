@@ -13,7 +13,8 @@ import { store } from '@/routes/register';
 defineOptions({
     layout: {
         title: 'Criar conta inicial',
-        description: 'Registe o primeiro utilizador administrador para arrancar o Fluxio.',
+        description:
+            'Registe o primeiro utilizador administrador para arrancar o Fluxio.',
     },
 });
 </script>

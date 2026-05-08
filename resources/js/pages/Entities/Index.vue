@@ -91,6 +91,7 @@ function submit() {
             preserveScroll: true,
             onSuccess: () => resetForm(),
         });
+
         return;
     }
 
@@ -101,20 +102,31 @@ function submit() {
 }
 
 function destroyRecord(record: EntityRecord) {
-    router.delete(`${props.endpoints.delete}/${record.id}`, { preserveScroll: true });
+    router.delete(`${props.endpoints.delete}/${record.id}`, {
+        preserveScroll: true,
+    });
 }
 
 async function lookupVies() {
     viesMessage.value = '';
 
-    const country = props.countries.find((option) => option.id === Number(form.country_id));
+    const country = props.countries.find(
+        (option) => option.id === Number(form.country_id),
+    );
 
     if (!country || !form.nif) {
-        viesMessage.value = 'Selecione um país e introduza o NIF para usar o VIES.';
+        viesMessage.value =
+            'Selecione um país e introduza o NIF para usar o VIES.';
+
         return;
     }
 
-    const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+    const token =
+        (
+            document.querySelector(
+                'meta[name="csrf-token"]',
+            ) as HTMLMetaElement | null
+        )?.content ?? '';
     const response = await fetch(props.endpoints.vies, {
         method: 'POST',
         headers: {
@@ -131,7 +143,9 @@ async function lookupVies() {
     const data = await response.json();
 
     if (!response.ok) {
-        viesMessage.value = data.message ?? 'Não foi possível consultar o VIES.';
+        viesMessage.value =
+            data.message ?? 'Não foi possível consultar o VIES.';
+
         return;
     }
 
@@ -147,14 +161,22 @@ async function lookupVies() {
     <Head :title="title" />
 
     <div class="space-y-6 px-4 py-6 md:px-6">
-        <PageIntro eyebrow="Entidades" :title="title" :description="modeDescription">
+        <PageIntro
+            eyebrow="Entidades"
+            :title="title"
+            :description="modeDescription"
+        >
             <template #actions>
-                <Button type="button" variant="secondary" @click="resetForm">Nova ficha</Button>
+                <Button type="button" variant="secondary" @click="resetForm"
+                    >Nova ficha</Button
+                >
             </template>
         </PageIntro>
 
         <section class="grid gap-6 xl:grid-cols-[1.25fr_0.95fr]">
-            <article class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <div class="overflow-x-auto p-6">
                     <table class="min-w-full text-left text-sm">
                         <thead class="text-muted-foreground">
@@ -170,18 +192,44 @@ async function lookupVies() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="record in records" :key="String(record.id)" class="border-b border-border/60 last:border-none">
+                            <tr
+                                v-for="record in records"
+                                :key="String(record.id)"
+                                class="border-b border-border/60 last:border-none"
+                            >
                                 <td class="py-4">{{ record.nif }}</td>
-                                <td class="py-4 font-medium">{{ record.name }}</td>
+                                <td class="py-4 font-medium">
+                                    {{ record.name }}
+                                </td>
                                 <td class="py-4">{{ record.phone }}</td>
                                 <td class="py-4">{{ record.mobile }}</td>
                                 <td class="py-4">{{ record.website }}</td>
                                 <td class="py-4">{{ record.email }}</td>
-                                <td class="py-4"><StatusBadge :value="record.is_active ? 'Ativo' : 'Inativo'" /></td>
+                                <td class="py-4">
+                                    <StatusBadge
+                                        :value="
+                                            record.is_active
+                                                ? 'Ativo'
+                                                : 'Inativo'
+                                        "
+                                    />
+                                </td>
                                 <td class="py-4">
                                     <div class="flex gap-2">
-                                        <Button type="button" size="sm" variant="secondary" @click="editRecord(record)">Editar</Button>
-                                        <Button type="button" size="sm" variant="destructive" @click="destroyRecord(record)">Apagar</Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="secondary"
+                                            @click="editRecord(record)"
+                                            >Editar</Button
+                                        >
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="destructive"
+                                            @click="destroyRecord(record)"
+                                            >Apagar</Button
+                                        >
                                     </div>
                                 </td>
                             </tr>
@@ -190,20 +238,33 @@ async function lookupVies() {
                 </div>
             </article>
 
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <div class="flex items-start justify-between gap-4">
                     <div>
                         <h2 class="font-serif-display text-3xl text-foreground">
-                            {{ editingId ? 'Editar entidade' : 'Nova entidade' }}
+                            {{
+                                editingId ? 'Editar entidade' : 'Nova entidade'
+                            }}
                         </h2>
                         <p class="mt-1 text-sm text-muted-foreground">
-                            Uma entidade pode existir como cliente e fornecedor em simultâneo.
+                            Uma entidade pode existir como cliente e fornecedor
+                            em simultâneo.
                         </p>
                     </div>
-                    <Button type="button" variant="secondary" @click="lookupVies">VIES</Button>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        @click="lookupVies"
+                        >VIES</Button
+                    >
                 </div>
 
-                <p v-if="viesMessage" class="mt-4 rounded-2xl bg-secondary/55 px-4 py-3 text-sm text-muted-foreground">
+                <p
+                    v-if="viesMessage"
+                    class="mt-4 rounded-2xl bg-secondary/55 px-4 py-3 text-sm text-muted-foreground"
+                >
                     {{ viesMessage }}
                 </p>
 
@@ -211,7 +272,11 @@ async function lookupVies() {
                     <div class="grid gap-4 md:grid-cols-2">
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Número</span>
-                            <Input v-model="form.number" type="number" min="1" />
+                            <Input
+                                v-model="form.number"
+                                type="number"
+                                min="1"
+                            />
                         </label>
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">NIF</span>
@@ -232,7 +297,10 @@ async function lookupVies() {
                     <div class="grid gap-4 md:grid-cols-3">
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Código postal</span>
-                            <Input v-model="form.postal_code" placeholder="0000-000" />
+                            <Input
+                                v-model="form.postal_code"
+                                placeholder="0000-000"
+                            />
                         </label>
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Localidade</span>
@@ -240,9 +308,16 @@ async function lookupVies() {
                         </label>
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">País</span>
-                            <select v-model="form.country_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                            <select
+                                v-model="form.country_id"
+                                class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                            >
                                 <option :value="null">Selecionar</option>
-                                <option v-for="country in countries" :key="country.id" :value="country.id">
+                                <option
+                                    v-for="country in countries"
+                                    :key="country.id"
+                                    :value="country.id"
+                                >
                                     {{ country.label }}
                                 </option>
                             </select>
@@ -277,30 +352,61 @@ async function lookupVies() {
                     </label>
 
                     <div class="grid gap-4 md:grid-cols-2">
-                        <label class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
-                            <input v-model="form.gdpr_consent" type="checkbox" class="size-4 rounded" />
+                        <label
+                            class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                        >
+                            <input
+                                v-model="form.gdpr_consent"
+                                type="checkbox"
+                                class="size-4 rounded"
+                            />
                             Consentimento RGPD
                         </label>
-                        <label class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
-                            <input v-model="form.is_active" type="checkbox" class="size-4 rounded" />
+                        <label
+                            class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                        >
+                            <input
+                                v-model="form.is_active"
+                                type="checkbox"
+                                class="size-4 rounded"
+                            />
                             Ativo
                         </label>
                     </div>
 
                     <div class="grid gap-4 md:grid-cols-2">
-                        <label class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
-                            <input v-model="form.is_customer" type="checkbox" class="size-4 rounded" />
+                        <label
+                            class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                        >
+                            <input
+                                v-model="form.is_customer"
+                                type="checkbox"
+                                class="size-4 rounded"
+                            />
                             Cliente
                         </label>
-                        <label class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
-                            <input v-model="form.is_supplier" type="checkbox" class="size-4 rounded" />
+                        <label
+                            class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                        >
+                            <input
+                                v-model="form.is_supplier"
+                                type="checkbox"
+                                class="size-4 rounded"
+                            />
                             Fornecedor
                         </label>
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <Button type="submit">{{ editingId ? 'Guardar alterações' : 'Criar entidade' }}</Button>
-                        <Button type="button" variant="secondary" @click="resetForm">Limpar</Button>
+                        <Button type="submit">{{
+                            editingId ? 'Guardar alterações' : 'Criar entidade'
+                        }}</Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            @click="resetForm"
+                            >Limpar</Button
+                        >
                     </div>
                 </form>
             </article>

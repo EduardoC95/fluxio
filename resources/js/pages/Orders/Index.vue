@@ -12,7 +12,14 @@ const props = defineProps<{
     records: Array<Record<string, any>>;
     customers: Array<{ id: number; label: string }>;
     suppliers: Array<{ id: number; label: string }>;
-    articles: Array<Record<string, any>>;
+    articles: Array<{
+        id: number;
+        reference: string;
+        name: string;
+        description?: string | null;
+        price: number;
+        vat_rate?: number | null;
+    }>;
     defaults: Record<string, any>;
     endpoints: Record<string, string>;
 }>();
@@ -35,7 +42,11 @@ const form = useForm({
     line_items: [] as Record<string, any>[],
 });
 
-const title = computed(() => (props.mode === 'customer' ? 'Encomendas - Clientes' : 'Encomendas - Fornecedores'));
+const title = computed(() =>
+    props.mode === 'customer'
+        ? 'Encomendas - Clientes'
+        : 'Encomendas - Fornecedores',
+);
 const description = computed(() =>
     props.mode === 'customer'
         ? 'Criação direta de encomendas ou conversão a partir de propostas.'
@@ -50,6 +61,7 @@ const totals = computed(() => {
             const vatRate = Number(row.vat_rate ?? 0);
             const subtotal = quantity * unitPrice;
             acc.total += subtotal + subtotal * (vatRate / 100);
+
             return acc;
         },
         { total: 0 },
@@ -84,6 +96,7 @@ function submit() {
             preserveScroll: true,
             onSuccess: resetForm,
         });
+
         return;
     }
 
@@ -94,11 +107,17 @@ function submit() {
 }
 
 function destroyRecord(record: Record<string, any>) {
-    router.delete(`${props.endpoints.delete}/${record.id}`, { preserveScroll: true });
+    router.delete(`${props.endpoints.delete}/${record.id}`, {
+        preserveScroll: true,
+    });
 }
 
 function convertSuppliers(record: Record<string, any>) {
-    router.post(`${props.endpoints.convert}/${record.id}/converter-fornecedores`, {}, { preserveScroll: true });
+    router.post(
+        `${props.endpoints.convert}/${record.id}/converter-fornecedores`,
+        {},
+        { preserveScroll: true },
+    );
 }
 </script>
 
@@ -106,14 +125,22 @@ function convertSuppliers(record: Record<string, any>) {
     <Head :title="title" />
 
     <div class="space-y-6 px-4 py-6 md:px-6">
-        <PageIntro eyebrow="Operações" :title="title" :description="description">
+        <PageIntro
+            eyebrow="Operações"
+            :title="title"
+            :description="description"
+        >
             <template #actions>
-                <Button type="button" variant="secondary" @click="resetForm">Nova encomenda</Button>
+                <Button type="button" variant="secondary" @click="resetForm"
+                    >Nova encomenda</Button
+                >
             </template>
         </PageIntro>
 
         <section class="space-y-6">
-            <article class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <div class="overflow-x-auto p-6">
                     <table class="min-w-full text-left text-sm">
                         <thead class="text-muted-foreground">
@@ -128,19 +155,67 @@ function convertSuppliers(record: Record<string, any>) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="record in records" :key="String(record.id)" class="border-b border-border/60 last:border-none">
+                            <tr
+                                v-for="record in records"
+                                :key="String(record.id)"
+                                class="border-b border-border/60 last:border-none"
+                            >
                                 <td class="py-4">{{ record.order_date }}</td>
-                                <td class="py-4 font-medium">{{ record.number }}</td>
+                                <td class="py-4 font-medium">
+                                    {{ record.number }}
+                                </td>
                                 <td class="py-4">{{ record.valid_until }}</td>
-                                <td class="py-4">{{ mode === 'customer' ? record.customer_name : record.supplier_name }}</td>
-                                <td class="py-4">€ {{ Number(record.totals?.total ?? 0).toFixed(2) }}</td>
-                                <td class="py-4"><StatusBadge :value="record.status" /></td>
+                                <td class="py-4">
+                                    {{
+                                        mode === 'customer'
+                                            ? record.customer_name
+                                            : record.supplier_name
+                                    }}
+                                </td>
+                                <td class="py-4">
+                                    €
+                                    {{
+                                        Number(
+                                            record.totals?.total ?? 0,
+                                        ).toFixed(2)
+                                    }}
+                                </td>
+                                <td class="py-4">
+                                    <StatusBadge :value="record.status" />
+                                </td>
                                 <td class="py-4">
                                     <div class="flex flex-wrap gap-2">
-                                        <Button type="button" size="sm" variant="secondary" @click="editRecord(record)">Editar</Button>
-                                        <Button v-if="mode === 'customer'" type="button" size="sm" variant="secondary" @click="convertSuppliers(record)">Gerar fornecedores</Button>
-                                        <a :href="`${props.endpoints.pdf}/${record.id}/pdf`" class="inline-flex items-center rounded-full border border-border px-3 py-2 text-xs font-semibold">PDF</a>
-                                        <Button type="button" size="sm" variant="destructive" @click="destroyRecord(record)">Apagar</Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="secondary"
+                                            @click="editRecord(record)"
+                                            >Editar</Button
+                                        >
+                                        <Button
+                                            v-if="
+                                                mode === 'customer' &&
+                                                record.status === 'closed'
+                                            "
+                                            type="button"
+                                            size="sm"
+                                            variant="secondary"
+                                            @click="convertSuppliers(record)"
+                                        >
+                                            Gerar fornecedores
+                                        </Button>
+                                        <a
+                                            :href="`${props.endpoints.pdf}/${record.id}/pdf`"
+                                            class="inline-flex items-center rounded-full border border-border px-3 py-2 text-xs font-semibold"
+                                            >PDF</a
+                                        >
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="destructive"
+                                            @click="destroyRecord(record)"
+                                            >Apagar</Button
+                                        >
                                     </div>
                                 </td>
                             </tr>
@@ -149,7 +224,9 @@ function convertSuppliers(record: Record<string, any>) {
                 </div>
             </article>
 
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <div class="grid gap-4 md:grid-cols-4">
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Número</span>
@@ -165,7 +242,10 @@ function convertSuppliers(record: Record<string, any>) {
                     </label>
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Estado</span>
-                        <select v-model="form.status" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="form.status"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option value="draft">Rascunho</option>
                             <option value="closed">Fechado</option>
                         </select>
@@ -175,21 +255,45 @@ function convertSuppliers(record: Record<string, any>) {
                 <div class="mt-4 grid gap-4 md:grid-cols-2">
                     <label v-if="mode === 'customer'" class="space-y-2 text-sm">
                         <span class="font-medium">Cliente</span>
-                        <select v-model="form.customer_entity_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="form.customer_entity_id"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option :value="null">Selecionar</option>
-                            <option v-for="customer in customers" :key="customer.id" :value="customer.id">{{ customer.label }}</option>
+                            <option
+                                v-for="customer in customers"
+                                :key="customer.id"
+                                :value="customer.id"
+                            >
+                                {{ customer.label }}
+                            </option>
                         </select>
                     </label>
                     <label v-else class="space-y-2 text-sm">
                         <span class="font-medium">Fornecedor</span>
-                        <select v-model="form.supplier_entity_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="form.supplier_entity_id"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option :value="null">Selecionar</option>
-                            <option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">{{ supplier.label }}</option>
+                            <option
+                                v-for="supplier in suppliers"
+                                :key="supplier.id"
+                                :value="supplier.id"
+                            >
+                                {{ supplier.label }}
+                            </option>
                         </select>
                     </label>
-                    <div class="rounded-[1.5rem] bg-secondary/45 px-4 py-3 text-sm">
-                        <p class="font-medium text-foreground">Total estimado</p>
-                        <p class="mt-2 text-muted-foreground">€ {{ totals.total.toFixed(2) }}</p>
+                    <div
+                        class="rounded-[1.5rem] bg-secondary/45 px-4 py-3 text-sm"
+                    >
+                        <p class="font-medium text-foreground">
+                            Total estimado
+                        </p>
+                        <p class="mt-2 text-muted-foreground">
+                            € {{ totals.total.toFixed(2) }}
+                        </p>
                     </div>
                 </div>
 
@@ -203,8 +307,12 @@ function convertSuppliers(record: Record<string, any>) {
                 </div>
 
                 <div class="mt-6 flex gap-3">
-                    <Button type="button" @click="submit">{{ editingId ? 'Guardar alterações' : 'Criar encomenda' }}</Button>
-                    <Button type="button" variant="secondary" @click="resetForm">Limpar</Button>
+                    <Button type="button" @click="submit">{{
+                        editingId ? 'Guardar alterações' : 'Criar encomenda'
+                    }}</Button>
+                    <Button type="button" variant="secondary" @click="resetForm"
+                        >Limpar</Button
+                    >
                 </div>
             </article>
         </section>

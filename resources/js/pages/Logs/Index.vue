@@ -23,7 +23,9 @@ defineProps<{
             description="Histórico operacional com data, utilizador, menu, ação, dispositivo e IP."
         />
 
-        <section class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+        <section
+            class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+        >
             <div class="overflow-x-auto p-6">
                 <table class="min-w-full text-left text-sm">
                     <thead class="text-muted-foreground">
@@ -38,7 +40,11 @@ defineProps<{
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="row in records" :key="String(row.id)" class="border-b border-border/60 last:border-none">
+                        <tr
+                            v-for="row in records"
+                            :key="String(row.id)"
+                            class="border-b border-border/60 last:border-none"
+                        >
                             <td class="py-4">{{ row.date }}</td>
                             <td class="py-4">{{ row.time }}</td>
                             <td class="py-4">{{ row.user }}</td>

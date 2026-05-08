@@ -66,6 +66,7 @@ function submit() {
             preserveScroll: true,
             onSuccess: resetForm,
         });
+
         return;
     }
 
@@ -76,7 +77,9 @@ function submit() {
 }
 
 function destroyRecord(record: Record<string, any>) {
-    router.delete(`${props.endpoints.delete}/${record.id}`, { preserveScroll: true });
+    router.delete(`${props.endpoints.delete}/${record.id}`, {
+        preserveScroll: true,
+    });
 }
 </script>
 
@@ -90,12 +93,16 @@ function destroyRecord(record: Record<string, any>) {
             description="Relações por entidade, função, consentimento RGPD e estado operacional."
         >
             <template #actions>
-                <Button type="button" variant="secondary" @click="resetForm">Novo contacto</Button>
+                <Button type="button" variant="secondary" @click="resetForm"
+                    >Novo contacto</Button
+                >
             </template>
         </PageIntro>
 
         <section class="grid gap-6 xl:grid-cols-[1.2fr_0.95fr]">
-            <article class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="overflow-hidden rounded-[2rem] border border-border/80 bg-card/95 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <div class="overflow-x-auto p-6">
                     <table class="min-w-full text-left text-sm">
                         <thead class="text-muted-foreground">
@@ -111,8 +118,14 @@ function destroyRecord(record: Record<string, any>) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="record in records" :key="String(record.id)" class="border-b border-border/60 last:border-none">
-                                <td class="py-4 font-medium">{{ record.first_name }}</td>
+                            <tr
+                                v-for="record in records"
+                                :key="String(record.id)"
+                                class="border-b border-border/60 last:border-none"
+                            >
+                                <td class="py-4 font-medium">
+                                    {{ record.first_name }}
+                                </td>
                                 <td class="py-4">{{ record.last_name }}</td>
                                 <td class="py-4">{{ record.role_name }}</td>
                                 <td class="py-4">{{ record.entity_name }}</td>
@@ -121,8 +134,20 @@ function destroyRecord(record: Record<string, any>) {
                                 <td class="py-4">{{ record.email }}</td>
                                 <td class="py-4">
                                     <div class="flex gap-2">
-                                        <Button type="button" size="sm" variant="secondary" @click="editRecord(record)">Editar</Button>
-                                        <Button type="button" size="sm" variant="destructive" @click="destroyRecord(record)">Apagar</Button>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="secondary"
+                                            @click="editRecord(record)"
+                                            >Editar</Button
+                                        >
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="destructive"
+                                            @click="destroyRecord(record)"
+                                            >Apagar</Button
+                                        >
                                     </div>
                                 </td>
                             </tr>
@@ -131,7 +156,9 @@ function destroyRecord(record: Record<string, any>) {
                 </div>
             </article>
 
-            <article class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]">
+            <article
+                class="rounded-[2rem] border border-border/80 bg-card/95 p-6 shadow-[0_16px_40px_rgba(60,43,30,0.08)]"
+            >
                 <h2 class="font-serif-display text-3xl text-foreground">
                     {{ editingId ? 'Editar contacto' : 'Novo contacto' }}
                 </h2>
@@ -140,13 +167,26 @@ function destroyRecord(record: Record<string, any>) {
                     <div class="grid gap-4 md:grid-cols-2">
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Número</span>
-                            <Input v-model="form.number" type="number" min="1" />
+                            <Input
+                                v-model="form.number"
+                                type="number"
+                                min="1"
+                            />
                         </label>
                         <label class="space-y-2 text-sm">
                             <span class="font-medium">Entidade</span>
-                            <select v-model="form.entity_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                            <select
+                                v-model="form.entity_id"
+                                class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                            >
                                 <option :value="null">Selecionar</option>
-                                <option v-for="entity in entities" :key="entity.id" :value="entity.id">{{ entity.label }}</option>
+                                <option
+                                    v-for="entity in entities"
+                                    :key="entity.id"
+                                    :value="entity.id"
+                                >
+                                    {{ entity.label }}
+                                </option>
                             </select>
                         </label>
                     </div>
@@ -164,9 +204,18 @@ function destroyRecord(record: Record<string, any>) {
 
                     <label class="space-y-2 text-sm">
                         <span class="font-medium">Função</span>
-                        <select v-model="form.contact_role_id" class="border-input flex h-10 w-full rounded-2xl border bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35">
+                        <select
+                            v-model="form.contact_role_id"
+                            class="flex h-10 w-full rounded-2xl border border-input bg-transparent px-4 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring/35"
+                        >
                             <option :value="null">Selecionar</option>
-                            <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.label }}</option>
+                            <option
+                                v-for="role in roles"
+                                :key="role.id"
+                                :value="role.id"
+                            >
+                                {{ role.label }}
+                            </option>
                         </select>
                     </label>
 
@@ -192,24 +241,47 @@ function destroyRecord(record: Record<string, any>) {
                     </label>
 
                     <div class="grid gap-4 md:grid-cols-2">
-                        <label class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
-                            <input v-model="form.gdpr_consent" type="checkbox" class="size-4 rounded" />
+                        <label
+                            class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                        >
+                            <input
+                                v-model="form.gdpr_consent"
+                                type="checkbox"
+                                class="size-4 rounded"
+                            />
                             Consentimento RGPD
                         </label>
-                        <div class="flex items-center justify-between rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
+                        <div
+                            class="flex items-center justify-between rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                        >
                             <span>Estado</span>
-                            <StatusBadge :value="form.is_active ? 'Ativo' : 'Inativo'" />
+                            <StatusBadge
+                                :value="form.is_active ? 'Ativo' : 'Inativo'"
+                            />
                         </div>
                     </div>
 
-                    <label class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm">
-                        <input v-model="form.is_active" type="checkbox" class="size-4 rounded" />
+                    <label
+                        class="flex items-center gap-3 rounded-2xl bg-secondary/45 px-4 py-3 text-sm"
+                    >
+                        <input
+                            v-model="form.is_active"
+                            type="checkbox"
+                            class="size-4 rounded"
+                        />
                         Contacto ativo
                     </label>
 
                     <div class="flex gap-3 pt-2">
-                        <Button type="submit">{{ editingId ? 'Guardar alterações' : 'Criar contacto' }}</Button>
-                        <Button type="button" variant="secondary" @click="resetForm">Limpar</Button>
+                        <Button type="submit">{{
+                            editingId ? 'Guardar alterações' : 'Criar contacto'
+                        }}</Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            @click="resetForm"
+                            >Limpar</Button
+                        >
                     </div>
                 </form>
             </article>

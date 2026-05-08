@@ -158,6 +158,10 @@ class DocumentsController extends Controller
 
     public function convertToSupplierOrders(Request $request, Order $order): RedirectResponse
     {
+        if ($order->status !== 'closed') {
+            return back()->with($this->flashToast('error', 'Só é possível gerar encomendas de fornecedor a partir de encomendas fechadas.'));
+        }
+
         $items = $order->line_items ?? [];
         $supplierIds = collect($items)->pluck('supplier_entity_id')->filter()->unique()->values();
 
@@ -377,9 +381,15 @@ class DocumentsController extends Controller
 
         $items = LineItemManager::normalise($validated['line_items']);
 
+        $proposalDate = $validated['proposal_date'];
+
+        if ($validated['status'] === 'closed' && $proposal?->status !== 'closed') {
+            $proposalDate = now()->format('Y-m-d');
+        }
+
         return [
             'number' => $validated['number'] ?: ($proposal?->number ?? DocumentNumberGenerator::nextDocument(Proposal::class, 'PROP')),
-            'proposal_date' => $validated['proposal_date'],
+            'proposal_date' => $proposalDate,
             'valid_until' => $validated['valid_until'],
             'entity_id' => $validated['entity_id'],
             'status' => $validated['status'],
@@ -411,10 +421,16 @@ class DocumentsController extends Controller
 
         $items = LineItemManager::normalise($validated['line_items']);
 
+        $orderDate = $validated['order_date'];
+
+        if ($validated['status'] === 'closed' && $order?->status !== 'closed') {
+            $orderDate = now()->format('Y-m-d');
+        }
+
         return [
             'number' => $validated['number'] ?: ($order?->number ?? DocumentNumberGenerator::nextDocument(Order::class, $kind === 'customer' ? 'ENCC' : 'ENCF')),
             'kind' => $kind,
-            'order_date' => $validated['order_date'],
+            'order_date' => $orderDate,
             'valid_until' => $validated['valid_until'] ?? null,
             'customer_entity_id' => $validated['customer_entity_id'] ?? null,
             'supplier_entity_id' => $validated['supplier_entity_id'] ?? null,
