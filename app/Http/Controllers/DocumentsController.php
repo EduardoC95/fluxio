@@ -12,9 +12,9 @@ use App\Models\Order;
 use App\Models\Proposal;
 use App\Models\SupplierInvoice;
 use App\Models\VatRate;
+use App\Services\Documents\DocumentPdfService;
 use App\Support\DocumentNumberGenerator;
 use App\Support\LineItemManager;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -112,18 +112,14 @@ class DocumentsController extends Controller
         return back()->with($this->flashToast('success', sprintf('Proposta convertida em encomenda %s.', $order->number)));
     }
 
-    public function downloadProposalPdf(Proposal $proposal)
+    public function downloadProposalPdf(Proposal $proposal, DocumentPdfService $pdfs)
     {
         $this->authorize('view', $proposal);
 
         $proposal->loadMissing(['customer.country']);
         $company = CompanySetting::query()->first();
 
-        return Pdf::loadView('pdf.document', [
-            'documentType' => 'Proposta',
-            'document' => $this->transformProposal($proposal),
-            'company' => $company,
-        ])->download(sprintf('%s.pdf', $proposal->number));
+        return $pdfs->proposal($proposal, $this->transformProposal($proposal), $company);
     }
 
     public function customerOrders(): Response
@@ -200,16 +196,14 @@ class DocumentsController extends Controller
         return back()->with($this->flashToast('success', 'Encomendas de fornecedor criadas com sucesso.'));
     }
 
-    public function downloadOrderPdf(Order $order)
+    public function downloadOrderPdf(Order $order, DocumentPdfService $pdfs)
     {
+        $this->authorize('view', $order);
+
         $order->loadMissing(['customer.country', 'supplier.country']);
         $company = CompanySetting::query()->first();
 
-        return Pdf::loadView('pdf.document', [
-            'documentType' => 'Encomenda',
-            'document' => $this->transformOrder($order->load(['customer', 'supplier'])),
-            'company' => $company,
-        ])->download(sprintf('%s.pdf', $order->number));
+        return $pdfs->order($order, $this->transformOrder($order->load(['customer', 'supplier'])), $company);
     }
 
     public function supplierInvoices(): Response

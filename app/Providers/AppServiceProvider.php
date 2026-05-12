@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
+use App\Policies\OrderPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +59,7 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureAuthorization(): void
     {
+        Gate::policy(Order::class, OrderPolicy::class);
         Gate::before(fn ($user, string $ability): ?bool => $user->hasRole('Administrador') ? true : null);
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Entity;
+use App\Models\Order;
 use App\Models\Proposal;
 use App\Models\SupplierInvoice;
 use App\Models\User;
@@ -90,6 +91,58 @@ class DocumentsModuleTest extends TestCase
             ->assertOk();
     }
 
+    public function test_order_pdf_requires_authentication(): void
+    {
+        $order = $this->createOrder('customer');
+
+        $this->get(route('orders.pdf', $order))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_order_pdf_requires_matching_permission(): void
+    {
+        $customerOrder = $this->createOrder('customer');
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('orders.pdf', $customerOrder))
+            ->assertForbidden();
+    }
+
+    public function test_customer_order_pdf_can_be_downloaded_with_customer_order_permission(): void
+    {
+        $customerOrder = $this->createOrder('customer');
+        $user = User::factory()->create();
+        $this->givePermission($user, 'encomendas-clientes.read');
+
+        $this->actingAs($user)
+            ->get(route('orders.pdf', $customerOrder))
+            ->assertOk();
+    }
+
+    public function test_order_pdf_authorization_distinguishes_customer_and_supplier_orders(): void
+    {
+        $customerOrder = $this->createOrder('customer');
+        $supplierOrder = $this->createOrder('supplier');
+
+        $customerReader = User::factory()->create();
+        $this->givePermission($customerReader, 'encomendas-clientes.read');
+
+        $supplierReader = User::factory()->create();
+        $this->givePermission($supplierReader, 'encomendas-fornecedores.read');
+
+        $this->actingAs($customerReader)
+            ->get(route('orders.pdf', $supplierOrder))
+            ->assertForbidden();
+
+        $this->actingAs($supplierReader)
+            ->get(route('orders.pdf', $customerOrder))
+            ->assertForbidden();
+
+        $this->actingAs($supplierReader)
+            ->get(route('orders.pdf', $supplierOrder))
+            ->assertOk();
+    }
+
     public function test_invoice_assets_require_read_permission(): void
     {
         Storage::fake('local');
@@ -114,5 +167,42 @@ class DocumentsModuleTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->get(route('assets.invoice-document', $invoice))
             ->assertForbidden();
+    }
+
+    private function createOrder(string $kind): Order
+    {
+        $nextNumber = ((int) Entity::query()->max('number')) + 1;
+
+        $customer = Entity::query()->create([
+            'number' => $nextNumber,
+            'name' => 'Cliente Teste',
+            'is_customer' => true,
+            'is_active' => true,
+        ]);
+
+        $supplier = Entity::query()->create([
+            'number' => $nextNumber + 1,
+            'name' => 'Fornecedor Teste',
+            'is_supplier' => true,
+            'is_active' => true,
+        ]);
+
+        return Order::query()->create([
+            'number' => $kind === 'customer' ? 'ENCC-2026-0001' : 'ENCF-2026-0001',
+            'kind' => $kind,
+            'order_date' => now()->toDateString(),
+            'valid_until' => now()->addDay()->toDateString(),
+            'customer_entity_id' => $kind === 'customer' ? $customer->id : null,
+            'supplier_entity_id' => $kind === 'supplier' ? $supplier->id : null,
+            'line_items' => [['name' => 'Item', 'quantity' => 1, 'unit_price' => 10]],
+            'totals' => ['total' => 10],
+            'status' => 'draft',
+        ]);
+    }
+
+    private function givePermission(User $user, string $permission): void
+    {
+        Permission::findOrCreate($permission, 'web');
+        $user->givePermissionTo($permission);
     }
 }
