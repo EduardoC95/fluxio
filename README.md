@@ -85,7 +85,7 @@ npm run build
 Estado da última validação:
 
 - `php artisan route:list`: passou, 104 rotas.
-- `php artisan test`: passou, 67 testes e 220 assertions.
+- `php artisan test: passou, 83 testes e 259 assertions, 2 skipped esperados porque o registo público está desativado.
 - `npm run build`: passou.
 
 ## Ambiente Local
