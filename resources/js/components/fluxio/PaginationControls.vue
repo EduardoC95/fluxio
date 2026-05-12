@@ -16,11 +16,34 @@ function visit(url: string | null) {
         preserveState: true,
     });
 }
+
+function formatPaginationLabel(label: string) {
+    if (!label) {
+        return '';
+    }
+
+    if (label.includes('Previous')) {
+        return 'Anterior';
+    }
+
+    if (label.includes('Next')) {
+        return 'Seguinte';
+    }
+
+    return label
+        .replace('&laquo;', '')
+        .replace('&raquo;', '')
+        .trim();
+}
 </script>
 
 <template>
-    <nav v-if="pagination && pagination.total > 0" class="flex flex-wrap items-center justify-between gap-3 px-6 pb-6 text-sm text-muted-foreground">
+    <nav
+        v-if="pagination && pagination.total > 0"
+        class="flex flex-wrap items-center justify-between gap-3 px-6 pb-6 text-sm text-muted-foreground"
+    >
         <span>{{ pagination.from }}-{{ pagination.to }} de {{ pagination.total }}</span>
+
         <div class="flex flex-wrap gap-2">
             <Button
                 v-for="(link, index) in pagination.links"
@@ -31,7 +54,7 @@ function visit(url: string | null) {
                 :disabled="!link.url"
                 @click="visit(link.url)"
             >
-                {{ link.label }}
+                {{ formatPaginationLabel(link.label) }}
             </Button>
         </div>
     </nav>
