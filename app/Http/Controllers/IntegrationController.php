@@ -49,14 +49,17 @@ class IntegrationController extends Controller
             'vat_number' => ['required', 'string', 'max:32'],
         ]);
 
+        $countryCode = htmlspecialchars($validated['country_code'], ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $vatNumber = htmlspecialchars($validated['vat_number'], ENT_XML1 | ENT_QUOTES, 'UTF-8');
+
         $body = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:ec.europa.eu:taxud:vies:services:checkVat:types">
   <soapenv:Header/>
   <soapenv:Body>
     <urn:checkVat>
-      <urn:countryCode>{$validated['country_code']}</urn:countryCode>
-      <urn:vatNumber>{$validated['vat_number']}</urn:vatNumber>
+      <urn:countryCode>{$countryCode}</urn:countryCode>
+      <urn:vatNumber>{$vatNumber}</urn:vatNumber>
     </urn:checkVat>
   </soapenv:Body>
 </soapenv:Envelope>
@@ -73,7 +76,7 @@ XML;
             ], 503);
         }
 
-        $xml = new \DOMDocument();
+        $xml = new \DOMDocument;
         $xml->loadXML($response->body());
         $xpath = new \DOMXPath($xml);
 

@@ -9,7 +9,14 @@ class CompanySetting extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'address',
+        'postal_code',
+        'city',
+        'tax_number',
+        'logo_path',
+    ];
 
     protected function casts(): array
     {

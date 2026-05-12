@@ -15,7 +15,13 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, TwoFactorAuthenticatable;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'email',
+        'mobile',
+        'password',
+        'is_active',
+    ];
 
     protected $hidden = [
         'password',

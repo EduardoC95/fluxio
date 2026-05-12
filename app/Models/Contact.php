@@ -11,7 +11,19 @@ class Contact extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'number',
+        'entity_id',
+        'first_name',
+        'last_name',
+        'contact_role_id',
+        'phone',
+        'mobile',
+        'email',
+        'gdpr_consent',
+        'notes',
+        'is_active',
+    ];
 
     protected function casts(): array
     {

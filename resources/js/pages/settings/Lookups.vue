@@ -43,7 +43,7 @@ function switchTab(tab: string) {
     router.get(
         `/configuracoes/listas/${tab}`,
         {},
-        { preserveScroll: true, preserveState: true },
+        { preserveScroll: true },
     );
 }
 

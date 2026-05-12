@@ -12,7 +12,25 @@ class Entity extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'number',
+        'is_customer',
+        'is_supplier',
+        'nif',
+        'name',
+        'address',
+        'postal_code',
+        'city',
+        'country_id',
+        'phone',
+        'mobile',
+        'website',
+        'email',
+        'gdpr_consent',
+        'notes',
+        'vies_payload',
+        'is_active',
+    ];
 
     protected function casts(): array
     {

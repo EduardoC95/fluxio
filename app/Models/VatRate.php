@@ -10,7 +10,11 @@ class VatRate extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'rate',
+        'is_active',
+    ];
 
     protected function casts(): array
     {

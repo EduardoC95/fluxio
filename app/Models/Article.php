@@ -11,7 +11,16 @@ class Article extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'reference',
+        'name',
+        'description',
+        'price',
+        'vat_rate_id',
+        'photo_path',
+        'notes',
+        'is_active',
+    ];
 
     protected function casts(): array
     {

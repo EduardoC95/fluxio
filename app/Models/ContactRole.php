@@ -10,7 +10,11 @@ class ContactRole extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'description',
+        'is_active',
+    ];
 
     protected function casts(): array
     {

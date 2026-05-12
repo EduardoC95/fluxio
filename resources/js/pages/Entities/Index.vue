@@ -2,6 +2,7 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageIntro from '@/components/fluxio/PageIntro.vue';
+import PaginationControls from '@/components/fluxio/PaginationControls.vue';
 import StatusBadge from '@/components/fluxio/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ const props = defineProps<{
     mode: 'customers' | 'suppliers';
     title: string;
     records: EntityRecord[];
+    pagination?: Record<string, any> | null;
     countries: CountryOption[];
     defaults: Record<string, any>;
     endpoints: Record<string, string>;
@@ -236,6 +238,7 @@ async function lookupVies() {
                         </tbody>
                     </table>
                 </div>
+                <PaginationControls :pagination="pagination" />
             </article>
 
             <article

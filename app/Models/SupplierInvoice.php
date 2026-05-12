@@ -10,7 +10,17 @@ class SupplierInvoice extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'number',
+        'invoice_date',
+        'due_date',
+        'supplier_entity_id',
+        'supplier_order_id',
+        'total',
+        'document_path',
+        'payment_proof_path',
+        'status',
+    ];
 
     protected function casts(): array
     {

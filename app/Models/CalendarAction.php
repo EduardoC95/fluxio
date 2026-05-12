@@ -10,7 +10,11 @@ class CalendarAction extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'color',
+        'is_active',
+    ];
 
     protected function casts(): array
     {

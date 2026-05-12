@@ -2,6 +2,7 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import PageIntro from '@/components/fluxio/PageIntro.vue';
+import PaginationControls from '@/components/fluxio/PaginationControls.vue';
 import StatusBadge from '@/components/fluxio/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 const props = defineProps<{
     records: Array<Record<string, any>>;
+    pagination?: Record<string, any> | null;
     entities: Array<{ id: number; label: string }>;
     roles: Array<{ id: number; label: string }>;
     defaults: Record<string, any>;
@@ -154,6 +156,7 @@ function destroyRecord(record: Record<string, any>) {
                         </tbody>
                     </table>
                 </div>
+                <PaginationControls :pagination="pagination" />
             </article>
 
             <article

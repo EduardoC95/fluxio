@@ -10,7 +10,12 @@ class Country extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'iso_code',
+        'phone_prefix',
+        'is_active',
+    ];
 
     protected function casts(): array
     {

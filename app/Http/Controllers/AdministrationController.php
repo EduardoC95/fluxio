@@ -8,7 +8,6 @@ use App\Models\CalendarType;
 use App\Models\CompanySetting;
 use App\Models\ContactRole;
 use App\Models\Country;
-use App\Models\Entity;
 use App\Models\VatRate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
@@ -37,37 +36,7 @@ class AdministrationController extends Controller
                 ['key' => 'calendar-actions', 'label' => 'Calendário - Acções'],
             ],
             'datasets' => [
-                'countries' => Country::query()->orderBy('name')->get()->map(fn (Country $country): array => [
-                    'id' => $country->id,
-                    'name' => $country->name,
-                    'iso_code' => $country->iso_code,
-                    'phone_prefix' => $country->phone_prefix,
-                    'is_active' => $country->is_active,
-                ])->values(),
-                'contact-roles' => ContactRole::query()->orderBy('name')->get()->map(fn (ContactRole $role): array => [
-                    'id' => $role->id,
-                    'name' => $role->name,
-                    'description' => $role->description,
-                    'is_active' => $role->is_active,
-                ])->values(),
-                'vat-rates' => VatRate::query()->orderBy('rate')->get()->map(fn (VatRate $rate): array => [
-                    'id' => $rate->id,
-                    'name' => $rate->name,
-                    'rate' => $rate->rate,
-                    'is_active' => $rate->is_active,
-                ])->values(),
-                'calendar-types' => CalendarType::query()->orderBy('name')->get()->map(fn (CalendarType $type): array => [
-                    'id' => $type->id,
-                    'name' => $type->name,
-                    'color' => $type->color,
-                    'is_active' => $type->is_active,
-                ])->values(),
-                'calendar-actions' => CalendarAction::query()->orderBy('name')->get()->map(fn (CalendarAction $action): array => [
-                    'id' => $action->id,
-                    'name' => $action->name,
-                    'color' => $action->color,
-                    'is_active' => $action->is_active,
-                ])->values(),
+                $tab => $this->lookupDataset($tab),
             ],
             'endpoints' => [
                 'store' => '/configuracoes/listas',
@@ -180,7 +149,7 @@ class AdministrationController extends Controller
                 'menu' => $activity->properties['menu'] ?? $activity->log_name,
                 'action' => $activity->properties['action'] ?? $activity->description,
                 'device' => $activity->properties['device'] ?? 'Desktop',
-                'ip' => $activity->properties['ip'] ?? 'n/a',
+                'ip' => $this->maskIp($activity->properties['ip'] ?? null),
             ])->values(),
         ]);
     }
@@ -202,6 +171,63 @@ class AdministrationController extends Controller
             'calendar-types' => CalendarType::class,
             'calendar-actions' => CalendarAction::class,
         ];
+    }
+
+    private function lookupDataset(string $tab)
+    {
+        return match ($tab) {
+            'countries' => Country::query()->orderBy('name')->get()->map(fn (Country $country): array => [
+                'id' => $country->id,
+                'name' => $country->name,
+                'iso_code' => $country->iso_code,
+                'phone_prefix' => $country->phone_prefix,
+                'is_active' => $country->is_active,
+            ])->values(),
+            'contact-roles' => ContactRole::query()->orderBy('name')->get()->map(fn (ContactRole $role): array => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'description' => $role->description,
+                'is_active' => $role->is_active,
+            ])->values(),
+            'vat-rates' => VatRate::query()->orderBy('rate')->get()->map(fn (VatRate $rate): array => [
+                'id' => $rate->id,
+                'name' => $rate->name,
+                'rate' => $rate->rate,
+                'is_active' => $rate->is_active,
+            ])->values(),
+            'calendar-types' => CalendarType::query()->orderBy('name')->get()->map(fn (CalendarType $type): array => [
+                'id' => $type->id,
+                'name' => $type->name,
+                'color' => $type->color,
+                'is_active' => $type->is_active,
+            ])->values(),
+            'calendar-actions' => CalendarAction::query()->orderBy('name')->get()->map(fn (CalendarAction $action): array => [
+                'id' => $action->id,
+                'name' => $action->name,
+                'color' => $action->color,
+                'is_active' => $action->is_active,
+            ])->values(),
+            default => collect(),
+        };
+    }
+
+    private function maskIp(?string $ip): string
+    {
+        if (! $ip) {
+            return 'n/a';
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return preg_replace('/\.\d+$/', '.xxx', $ip) ?? 'n/a';
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $parts = explode(':', $ip);
+
+            return implode(':', array_slice($parts, 0, 4)).':xxxx:xxxx:xxxx:xxxx';
+        }
+
+        return 'n/a';
     }
 
     private function resolveLookupConfig(string $tab, ?int $recordId = null): array

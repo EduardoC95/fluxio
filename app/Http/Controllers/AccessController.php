@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\LogsFluxioActivity;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -20,11 +21,12 @@ class AccessController extends Controller
 
     public function users(): Response
     {
-        $users = User::query()->with('roles')->orderBy('name')->get();
-        $roles = Role::query()->orderBy('name')->get();
-
-        return Inertia::render('Access/Users', [
-            'records' => $users->map(fn (User $user): array => [
+        $users = User::query()
+            ->with('roles')
+            ->orderBy('name')
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (User $user): array => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -32,7 +34,12 @@ class AccessController extends Controller
                 'role_name' => $user->roles->first()?->name,
                 'role_id' => $user->roles->first()?->id,
                 'is_active' => $user->is_active,
-            ])->values(),
+            ]);
+        $roles = Role::query()->orderBy('name')->get();
+
+        return Inertia::render('Access/Users', [
+            'records' => $users->items(),
+            'pagination' => $this->paginationMeta($users),
             'roles' => $roles->map(fn (Role $role): array => [
                 'id' => $role->id,
                 'label' => $role->name,
@@ -63,7 +70,7 @@ class AccessController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'mobile' => $validated['mobile'] ?? null,
-            'password' => $validated['password'] ?? Str::password(16),
+            'password' => Hash::make($validated['password'] ?? Str::password(16)),
             'is_active' => (bool) ($validated['is_active'] ?? true),
         ]);
 
@@ -99,7 +106,7 @@ class AccessController extends Controller
         ]);
 
         if (! empty($validated['password'])) {
-            $user->password = $validated['password'];
+            $user->password = Hash::make($validated['password']);
         }
 
         $user->save();

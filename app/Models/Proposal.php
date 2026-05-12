@@ -10,7 +10,15 @@ class Proposal extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'number',
+        'proposal_date',
+        'valid_until',
+        'entity_id',
+        'line_items',
+        'totals',
+        'status',
+    ];
 
     protected function casts(): array
     {

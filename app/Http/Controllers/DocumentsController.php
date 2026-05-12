@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\LogsFluxioActivity;
+use App\Http\Requests\SupplierInvoiceRequest;
 use App\Mail\SupplierPaymentProofMail;
 use App\Models\Article;
 use App\Models\CompanySetting;
@@ -28,10 +29,16 @@ class DocumentsController extends Controller
 
     public function proposals(): Response
     {
-        $proposals = Proposal::query()->with('customer')->latest()->get();
+        $proposals = Proposal::query()
+            ->with('customer')
+            ->latest()
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (Proposal $proposal): array => $this->transformProposal($proposal));
 
         return Inertia::render('Proposals/Index', [
-            'records' => $proposals->map(fn (Proposal $proposal): array => $this->transformProposal($proposal))->values(),
+            'records' => $proposals->items(),
+            'pagination' => $this->paginationMeta($proposals),
             'customers' => Entity::query()->customers()->orderBy('number')->get()->map(fn (Entity $entity): array => [
                 'id' => $entity->id,
                 'label' => sprintf('%s - %s', $entity->number, $entity->name),
@@ -107,6 +114,8 @@ class DocumentsController extends Controller
 
     public function downloadProposalPdf(Proposal $proposal)
     {
+        $this->authorize('view', $proposal);
+
         $proposal->loadMissing(['customer.country']);
         $company = CompanySetting::query()->first();
 
@@ -205,10 +214,12 @@ class DocumentsController extends Controller
 
     public function supplierInvoices(): Response
     {
-        $invoices = SupplierInvoice::query()->with(['supplier', 'supplierOrder'])->latest()->get();
-
-        return Inertia::render('SupplierInvoices/Index', [
-            'records' => $invoices->map(fn (SupplierInvoice $invoice): array => [
+        $invoices = SupplierInvoice::query()
+            ->with(['supplier', 'supplierOrder'])
+            ->latest()
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (SupplierInvoice $invoice): array => [
                 'id' => $invoice->id,
                 'number' => $invoice->number,
                 'invoice_date' => optional($invoice->invoice_date)->format('Y-m-d'),
@@ -221,7 +232,11 @@ class DocumentsController extends Controller
                 'status' => $invoice->status,
                 'document_url' => $invoice->document_path ? sprintf('/ativos/faturas/%d/documento', $invoice->id) : null,
                 'payment_proof_url' => $invoice->payment_proof_path ? sprintf('/ativos/faturas/%d/comprovativo', $invoice->id) : null,
-            ])->values(),
+            ]);
+
+        return Inertia::render('SupplierInvoices/Index', [
+            'records' => $invoices->items(),
+            'pagination' => $this->paginationMeta($invoices),
             'suppliers' => $this->supplierOptions(),
             'supplierOrders' => Order::query()->where('kind', 'supplier')->with('supplier')->latest()->get()->map(fn (Order $order): array => [
                 'id' => $order->id,
@@ -242,9 +257,9 @@ class DocumentsController extends Controller
         ]);
     }
 
-    public function storeSupplierInvoice(Request $request): RedirectResponse
+    public function storeSupplierInvoice(SupplierInvoiceRequest $request): RedirectResponse
     {
-        $invoice = new SupplierInvoice($this->validatedSupplierInvoice($request));
+        $invoice = new SupplierInvoice($request->payload(DocumentNumberGenerator::nextDocument(SupplierInvoice::class, 'FF')));
 
         if ($request->hasFile('document')) {
             $invoice->document_path = $request->file('document')->store('supplier-invoices/documents', 'local');
@@ -262,9 +277,9 @@ class DocumentsController extends Controller
         return back()->with($this->flashToast('success', 'Fatura de fornecedor criada com sucesso.'));
     }
 
-    public function updateSupplierInvoice(Request $request, SupplierInvoice $supplierInvoice): RedirectResponse
+    public function updateSupplierInvoice(SupplierInvoiceRequest $request, SupplierInvoice $supplierInvoice): RedirectResponse
     {
-        $supplierInvoice->fill($this->validatedSupplierInvoice($request));
+        $supplierInvoice->fill($request->payload($supplierInvoice->number));
 
         if ($request->hasFile('document')) {
             if ($supplierInvoice->document_path) {
@@ -313,11 +328,14 @@ class DocumentsController extends Controller
             ->with(['customer', 'supplier'])
             ->where('kind', $kind)
             ->latest()
-            ->get();
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (Order $order): array => $this->transformOrder($order));
 
         return Inertia::render('Orders/Index', [
             'mode' => $kind,
-            'records' => $orders->map(fn (Order $order): array => $this->transformOrder($order))->values(),
+            'records' => $orders->items(),
+            'pagination' => $this->paginationMeta($orders),
             'customers' => Entity::query()->customers()->orderBy('number')->get()->map(fn (Entity $entity): array => [
                 'id' => $entity->id,
                 'label' => sprintf('%s - %s', $entity->number, $entity->name),
@@ -440,31 +458,6 @@ class DocumentsController extends Controller
         ];
     }
 
-    private function validatedSupplierInvoice(Request $request): array
-    {
-        $validated = $request->validate([
-            'number' => ['nullable', 'string', 'max:255'],
-            'invoice_date' => ['required', 'date'],
-            'due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
-            'supplier_entity_id' => ['required', Rule::exists('entities', 'id')->where('is_supplier', true)],
-            'supplier_order_id' => ['nullable', 'exists:orders,id'],
-            'total' => ['required', 'numeric', 'min:0'],
-            'status' => ['required', Rule::in(['pending', 'paid'])],
-            'document' => ['nullable', 'file', 'max:10240'],
-            'payment_proof' => ['nullable', 'file', 'max:10240'],
-        ]);
-
-        return [
-            'number' => $validated['number'] ?: DocumentNumberGenerator::nextDocument(SupplierInvoice::class, 'FF'),
-            'invoice_date' => $validated['invoice_date'],
-            'due_date' => $validated['due_date'],
-            'supplier_entity_id' => $validated['supplier_entity_id'],
-            'supplier_order_id' => $validated['supplier_order_id'] ?? null,
-            'total' => number_format((float) $validated['total'], 2, '.', ''),
-            'status' => $validated['status'],
-        ];
-    }
-
     private function sendPaymentProofIfNeeded(SupplierInvoice $invoice): void
     {
         if ($invoice->status !== 'paid' || ! $invoice->payment_proof_path) {
@@ -477,7 +470,7 @@ class DocumentsController extends Controller
             return;
         }
 
-        Mail::to($supplier->email)->send(new SupplierPaymentProofMail(
+        Mail::to($supplier->email)->queue(new SupplierPaymentProofMail(
             invoice: $invoice->load('supplier'),
             company: CompanySetting::query()->first(),
             attachmentPath: $invoice->payment_proof_path,

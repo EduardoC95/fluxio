@@ -10,7 +10,18 @@ class CalendarEvent extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'entity_id',
+        'calendar_type_id',
+        'calendar_action_id',
+        'scheduled_for',
+        'duration_minutes',
+        'shared',
+        'knowledge',
+        'description',
+        'status',
+    ];
 
     protected function casts(): array
     {

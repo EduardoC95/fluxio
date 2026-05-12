@@ -3,23 +3,27 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import LineItemsEditor from '@/components/fluxio/LineItemsEditor.vue';
 import PageIntro from '@/components/fluxio/PageIntro.vue';
+import PaginationControls from '@/components/fluxio/PaginationControls.vue';
 import StatusBadge from '@/components/fluxio/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+type ArticleOption = {
+    id: number;
+    reference: string;
+    name: string;
+    description?: string | null;
+    price: number;
+    vat_rate?: number | null;
+};
+
 const props = defineProps<{
     mode: 'customer' | 'supplier';
     records: Array<Record<string, any>>;
+    pagination?: Record<string, any> | null;
     customers: Array<{ id: number; label: string }>;
     suppliers: Array<{ id: number; label: string }>;
-    articles: Array<{
-        id: number;
-        reference: string;
-        name: string;
-        description?: string | null;
-        price: number;
-        vat_rate?: number | null;
-    }>;
+    articles: ArticleOption[];
     defaults: Record<string, any>;
     endpoints: Record<string, string>;
 }>();
@@ -222,6 +226,7 @@ function convertSuppliers(record: Record<string, any>) {
                         </tbody>
                     </table>
                 </div>
+                <PaginationControls :pagination="pagination" />
             </article>
 
             <article

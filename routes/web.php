@@ -13,7 +13,7 @@ Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::get('/empresa/logo', [IntegrationController::class, 'companyLogo'])->name('company.logo');
+Route::get('/empresa/logo', [IntegrationController::class, 'companyLogo'])->middleware('auth')->name('company.logo');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [CrmController::class, 'dashboard'])->name('dashboard');
@@ -99,11 +99,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/logs', [AdministrationController::class, 'logs'])->middleware('can:logs.read')->name('logs.index');
 
-    Route::post('/integracoes/vies', [IntegrationController::class, 'vies'])->name('integrations.vies');
+    Route::match(['get', 'post'], '/integracoes/vies', [IntegrationController::class, 'vies'])->middleware('throttle:30,1')->name('integrations.vies');
 
-    Route::get('/ativos/artigos/{article}/foto', [IntegrationController::class, 'articlePhoto'])->name('assets.article-photo');
-    Route::get('/ativos/faturas/{supplierInvoice}/documento', [IntegrationController::class, 'invoiceDocument'])->name('assets.invoice-document');
-    Route::get('/ativos/faturas/{supplierInvoice}/comprovativo', [IntegrationController::class, 'invoicePaymentProof'])->name('assets.invoice-payment-proof');
+    Route::get('/ativos/artigos/{article}/foto', [IntegrationController::class, 'articlePhoto'])->middleware('can:artigos.read')->name('assets.article-photo');
+    Route::get('/ativos/faturas/{supplierInvoice}/documento', [IntegrationController::class, 'invoiceDocument'])->middleware('can:faturas-fornecedores.read')->name('assets.invoice-document');
+    Route::get('/ativos/faturas/{supplierInvoice}/comprovativo', [IntegrationController::class, 'invoicePaymentProof'])->middleware('can:faturas-fornecedores.read')->name('assets.invoice-payment-proof');
 
     Route::get('/workspace/{module}', [AdministrationController::class, 'placeholder'])->middleware('can:workspace.read')->name('workspace.placeholder');
 });

@@ -14,10 +14,10 @@ use App\Models\Proposal;
 use App\Models\SupplierInvoice;
 use App\Models\VatRate;
 use App\Support\DocumentNumberGenerator;
+use App\Support\SearchHash;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -109,10 +109,12 @@ class CrmController extends Controller
 
     public function contacts(): Response
     {
-        $contacts = Contact::query()->with(['entity', 'role'])->latest()->get();
-
-        return Inertia::render('Contacts/Index', [
-            'records' => $contacts->map(fn (Contact $contact): array => [
+        $contacts = Contact::query()
+            ->with(['entity', 'role'])
+            ->latest()
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (Contact $contact): array => [
                 'id' => $contact->id,
                 'number' => $contact->number,
                 'first_name' => $contact->first_name,
@@ -127,7 +129,11 @@ class CrmController extends Controller
                 'gdpr_consent' => $contact->gdpr_consent,
                 'notes' => $contact->notes,
                 'is_active' => $contact->is_active,
-            ])->values(),
+            ]);
+
+        return Inertia::render('Contacts/Index', [
+            'records' => $contacts->items(),
+            'pagination' => $this->paginationMeta($contacts),
             'entities' => Entity::query()->orderBy('number')->get()->map(fn (Entity $entity): array => [
                 'id' => $entity->id,
                 'label' => sprintf('%s - %s', $entity->number, $entity->name),
@@ -215,10 +221,12 @@ class CrmController extends Controller
 
     public function articles(): Response
     {
-        $articles = Article::query()->with('vatRate')->latest()->get();
-
-        return Inertia::render('Articles/Index', [
-            'records' => $articles->map(fn (Article $article): array => [
+        $articles = Article::query()
+            ->with('vatRate')
+            ->latest()
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (Article $article): array => [
                 'id' => $article->id,
                 'reference' => $article->reference,
                 'name' => $article->name,
@@ -229,7 +237,11 @@ class CrmController extends Controller
                 'notes' => $article->notes,
                 'is_active' => $article->is_active,
                 'photo_url' => $article->photo_path ? sprintf('/ativos/artigos/%d/foto', $article->id) : null,
-            ])->values(),
+            ]);
+
+        return Inertia::render('Articles/Index', [
+            'records' => $articles->items(),
+            'pagination' => $this->paginationMeta($articles),
             'vatRates' => VatRate::query()->where('is_active', true)->orderBy('rate')->get()->map(fn (VatRate $rate): array => [
                 'id' => $rate->id,
                 'label' => sprintf('%s%% - %s', $rate->rate, $rate->name),
@@ -339,12 +351,9 @@ class CrmController extends Controller
             ->when($mode === 'customers', fn ($query) => $query->customers())
             ->when($mode === 'suppliers', fn ($query) => $query->suppliers())
             ->latest()
-            ->get();
-
-        return Inertia::render('Entities/Index', [
-            'mode' => $mode,
-            'title' => $title,
-            'records' => $records->map(fn (Entity $entity): array => [
+            ->paginate(50)
+            ->withQueryString()
+            ->through(fn (Entity $entity): array => [
                 'id' => $entity->id,
                 'number' => $entity->number,
                 'nif' => $entity->nif,
@@ -364,7 +373,13 @@ class CrmController extends Controller
                 'is_customer' => $entity->is_customer,
                 'is_supplier' => $entity->is_supplier,
                 'vies_payload' => $entity->vies_payload,
-            ])->values(),
+            ]);
+
+        return Inertia::render('Entities/Index', [
+            'mode' => $mode,
+            'title' => $title,
+            'records' => $records->items(),
+            'pagination' => $this->paginationMeta($records),
             'countries' => Country::query()->where('is_active', true)->orderBy('name')->get()->map(fn (Country $country): array => [
                 'id' => $country->id,
                 'label' => $country->name,
@@ -452,7 +467,7 @@ class CrmController extends Controller
         $nif = $validated['nif'] ?? null;
 
         if ($nif) {
-            $hash = \App\Support\SearchHash::make($nif);
+            $hash = SearchHash::make($nif);
             $exists = Entity::query()
                 ->where('nif_hash', $hash)
                 ->when($entity, fn ($query) => $query->whereKeyNot($entity->id))

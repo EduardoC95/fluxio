@@ -17,9 +17,11 @@ use App\Models\SupplierInvoice;
 use App\Models\User;
 use App\Models\VatRate;
 use App\Support\LineItemManager;
+use App\Support\SearchHash;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
@@ -141,7 +143,7 @@ class FluxioDemoSeeder extends Seeder
                 ['email' => $definition['email']],
                 [
                     'name' => $definition['name'],
-                    'password' => 'Fluxio123!demo',
+                    'password' => Hash::make('Fluxio123!demo'),
                     'mobile' => $definition['mobile'],
                     'is_active' => true,
                     'email_verified_at' => now(),
@@ -277,7 +279,7 @@ class FluxioDemoSeeder extends Seeder
 
         foreach ($definitions as $definition) {
             $article = Article::query()->firstOrNew([
-                'reference_hash' => \App\Support\SearchHash::make($definition['reference']),
+                'reference_hash' => SearchHash::make($definition['reference']),
             ]);
 
             $article->fill([
@@ -612,7 +614,7 @@ class FluxioDemoSeeder extends Seeder
         ];
 
         foreach ($definitions as $definition) {
-            $activity = new Activity();
+            $activity = new Activity;
             $activity->forceFill([
                 'log_name' => 'fluxio-demo',
                 'description' => $definition['action'],

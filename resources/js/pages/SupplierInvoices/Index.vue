@@ -2,12 +2,14 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import PageIntro from '@/components/fluxio/PageIntro.vue';
+import PaginationControls from '@/components/fluxio/PaginationControls.vue';
 import StatusBadge from '@/components/fluxio/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const props = defineProps<{
     records: Array<Record<string, any>>;
+    pagination?: Record<string, any> | null;
     suppliers: Array<{ id: number; label: string }>;
     supplierOrders: Array<Record<string, any>>;
     defaults: Record<string, any>;
@@ -179,6 +181,7 @@ function destroyRecord(record: Record<string, any>) {
                         </tbody>
                     </table>
                 </div>
+                <PaginationControls :pagination="pagination" />
             </article>
 
             <article
@@ -257,6 +260,7 @@ function destroyRecord(record: Record<string, any>) {
                         <span class="font-medium">Documento</span>
                         <input
                             type="file"
+                            accept=".pdf,image/jpeg,image/png,image/webp"
                             class="block w-full text-sm"
                             @change="
                                 form.document =
@@ -293,12 +297,13 @@ function destroyRecord(record: Record<string, any>) {
                         <div class="mt-3">
                             <input
                                 type="file"
+                                accept=".pdf,image/jpeg,image/png,image/webp"
                                 class="block w-full text-sm"
                                 @change="
                                     form.payment_proof =
                                         ($event.target as HTMLInputElement)
                                             .files?.[0] ?? null
-                                "
+                                    "
                             />
                         </div>
                     </div>
