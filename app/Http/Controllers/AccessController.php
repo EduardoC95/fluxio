@@ -19,6 +19,8 @@ class AccessController extends Controller
 {
     use LogsFluxioActivity;
 
+    private const ADMIN_ROLE = 'Administrador';
+
     public function users(): Response
     {
         $users = User::query()
@@ -98,11 +100,18 @@ class AccessController extends Controller
             'is_active' => ['boolean'],
         ]);
 
+        $newRole = ! empty($validated['role_id'])
+            ? Role::query()->find($validated['role_id'])
+            : null;
+        $newIsActive = (bool) ($validated['is_active'] ?? true);
+
+        $this->ensureUserChangeKeepsAdminAccess($request, $user, $newRole, $newIsActive);
+
         $user->fill([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'mobile' => $validated['mobile'] ?? null,
-            'is_active' => (bool) ($validated['is_active'] ?? true),
+            'is_active' => $newIsActive,
         ]);
 
         if (! empty($validated['password'])) {
@@ -111,12 +120,8 @@ class AccessController extends Controller
 
         $user->save();
 
-        if (! empty($validated['role_id'])) {
-            $role = Role::query()->find($validated['role_id']);
-
-            if ($role) {
-                $user->syncRoles([$role->name]);
-            }
+        if ($newRole) {
+            $user->syncRoles([$newRole->name]);
         } else {
             $user->syncRoles([]);
         }
@@ -131,6 +136,12 @@ class AccessController extends Controller
         if ($request->user()?->is($user)) {
             throw ValidationException::withMessages([
                 'user' => 'Não pode remover o seu próprio utilizador.',
+            ]);
+        }
+
+        if ($this->wouldRemoveLastAdmin($user, null, false)) {
+            throw ValidationException::withMessages([
+                'user' => 'Nao pode remover o ultimo administrador ativo.',
             ]);
         }
 
@@ -182,7 +193,7 @@ class AccessController extends Controller
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
             'is_active' => ['boolean'],
             'permissions' => ['array'],
-            'permissions.*' => ['string'],
+            'permissions.*' => ['string', Rule::in($this->validPermissionNames($catalogue))],
         ]);
 
         $role = Role::query()->create([
@@ -207,7 +218,7 @@ class AccessController extends Controller
             'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($role->id)],
             'is_active' => ['boolean'],
             'permissions' => ['array'],
-            'permissions.*' => ['string'],
+            'permissions.*' => ['string', Rule::in($this->validPermissionNames($catalogue))],
         ]);
 
         $role->update([
@@ -265,5 +276,60 @@ class AccessController extends Controller
                 Permission::findOrCreate(sprintf('%s.%s', $module['slug'], $ability), 'web');
             }
         }
+    }
+
+    private function validPermissionNames(array $catalogue): array
+    {
+        return collect($catalogue)
+            ->flatMap(fn (array $module) => collect($module['abilities'])
+                ->map(fn (string $ability): string => sprintf('%s.%s', $module['slug'], $ability)))
+            ->values()
+            ->all();
+    }
+
+    private function ensureUserChangeKeepsAdminAccess(Request $request, User $user, ?Role $newRole, bool $newIsActive): void
+    {
+        if ($request->user()?->is($user) && ! $newIsActive) {
+            throw ValidationException::withMessages([
+                'is_active' => 'Nao pode desativar a sua propria conta.',
+            ]);
+        }
+
+        if ($request->user()?->is($user) && $this->isAdminUser($user) && $newRole?->name !== self::ADMIN_ROLE) {
+            throw ValidationException::withMessages([
+                'role_id' => 'Nao pode remover o seu proprio acesso de administracao.',
+            ]);
+        }
+
+        if ($this->wouldRemoveLastAdmin($user, $newRole, $newIsActive)) {
+            throw ValidationException::withMessages([
+                'role_id' => 'Nao pode deixar o sistema sem um administrador ativo.',
+            ]);
+        }
+    }
+
+    private function isAdminUser(User $user): bool
+    {
+        return $user->hasRole(self::ADMIN_ROLE);
+    }
+
+    private function activeAdminCount(): int
+    {
+        return User::role(self::ADMIN_ROLE)
+            ->where('is_active', true)
+            ->count();
+    }
+
+    private function wouldRemoveLastAdmin(User $user, ?Role $newRole, bool $newIsActive): bool
+    {
+        if (! $this->isAdminUser($user) || ! $user->is_active) {
+            return false;
+        }
+
+        if ($this->activeAdminCount() > 1) {
+            return false;
+        }
+
+        return ! $newIsActive || $newRole?->name !== self::ADMIN_ROLE;
     }
 }

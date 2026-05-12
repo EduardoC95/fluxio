@@ -19,7 +19,12 @@ class SupplierInvoiceRequest extends FormRequest
             'invoice_date' => ['required', 'date'],
             'due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
             'supplier_entity_id' => ['required', Rule::exists('entities', 'id')->where('is_supplier', true)],
-            'supplier_order_id' => ['nullable', 'exists:orders,id'],
+            'supplier_order_id' => [
+                'nullable',
+                Rule::exists('orders', 'id')
+                    ->where('kind', 'supplier')
+                    ->where('supplier_entity_id', $this->input('supplier_entity_id')),
+            ],
             'total' => ['required', 'numeric', 'min:0'],
             'status' => ['required', Rule::in(['pending', 'paid'])],
             'document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240'],

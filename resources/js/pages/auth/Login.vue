@@ -8,7 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
@@ -106,7 +105,7 @@ defineProps<{
             v-if="canRegister"
         >
             Ainda não existe conta?
-            <TextLink :href="register()" :tabindex="5"
+            <TextLink href="/register" :tabindex="5"
                 >Criar acesso inicial</TextLink
             >
         </div>

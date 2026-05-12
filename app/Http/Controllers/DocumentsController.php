@@ -17,6 +17,7 @@ use App\Support\DocumentNumberGenerator;
 use App\Support\LineItemManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -167,29 +168,42 @@ class DocumentsController extends Controller
             return back()->with($this->flashToast('error', 'Só é possível gerar encomendas de fornecedor a partir de encomendas fechadas.'));
         }
 
-        $items = $order->line_items ?? [];
-        $supplierIds = collect($items)->pluck('supplier_entity_id')->filter()->unique()->values();
+        DB::transaction(function () use ($order): void {
+            $items = $order->line_items ?? [];
+            $supplierIds = collect($items)->pluck('supplier_entity_id')->filter()->unique()->values();
 
-        foreach ($supplierIds as $supplierId) {
-            $supplierItems = LineItemManager::forSupplier($items, (int) $supplierId);
+            foreach ($supplierIds as $supplierId) {
+                $supplierItems = LineItemManager::forSupplier($items, (int) $supplierId);
 
-            if ($supplierItems === []) {
-                continue;
+                if ($supplierItems === []) {
+                    continue;
+                }
+
+                $existing = Order::query()
+                    ->where('kind', 'supplier')
+                    ->where('source_order_id', $order->id)
+                    ->where('supplier_entity_id', (int) $supplierId)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existing) {
+                    continue;
+                }
+
+                Order::query()->create([
+                    'number' => DocumentNumberGenerator::nextDocument(Order::class, 'ENCF'),
+                    'kind' => 'supplier',
+                    'order_date' => now()->format('Y-m-d'),
+                    'valid_until' => now()->addDays(30)->format('Y-m-d'),
+                    'customer_entity_id' => $order->customer_entity_id,
+                    'supplier_entity_id' => $supplierId,
+                    'source_order_id' => $order->id,
+                    'line_items' => $supplierItems,
+                    'totals' => LineItemManager::totals($supplierItems),
+                    'status' => 'draft',
+                ]);
             }
-
-            Order::query()->create([
-                'number' => DocumentNumberGenerator::nextDocument(Order::class, 'ENCF'),
-                'kind' => 'supplier',
-                'order_date' => now()->format('Y-m-d'),
-                'valid_until' => now()->addDays(30)->format('Y-m-d'),
-                'customer_entity_id' => $order->customer_entity_id,
-                'supplier_entity_id' => $supplierId,
-                'source_order_id' => $order->id,
-                'line_items' => $supplierItems,
-                'totals' => LineItemManager::totals($supplierItems),
-                'status' => 'draft',
-            ]);
-        }
+        });
 
         $this->logFluxioActivity($request, 'Encomendas', 'convert', $order);
 

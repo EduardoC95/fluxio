@@ -60,6 +60,53 @@ class DocumentsModuleTest extends TestCase
             ->assertSessionHasErrors('document');
     }
 
+    public function test_supplier_invoice_rejects_customer_order_as_supplier_order(): void
+    {
+        $supplier = $this->createSupplier();
+        $customerOrder = $this->createOrder('customer');
+        $user = User::factory()->create();
+        $this->givePermission($user, 'faturas-fornecedores.create');
+
+        $this->actingAs($user)
+            ->from(route('supplier-invoices.index'))
+            ->post(route('supplier-invoices.store'), $this->supplierInvoicePayload($supplier->id, $customerOrder->id))
+            ->assertSessionHasErrors('supplier_order_id');
+    }
+
+    public function test_supplier_invoice_rejects_supplier_order_from_another_supplier(): void
+    {
+        $supplier = $this->createSupplier();
+        $anotherSupplier = $this->createSupplier();
+        $supplierOrder = $this->createOrder('supplier', $anotherSupplier);
+        $user = User::factory()->create();
+        $this->givePermission($user, 'faturas-fornecedores.create');
+
+        $this->actingAs($user)
+            ->from(route('supplier-invoices.index'))
+            ->post(route('supplier-invoices.store'), $this->supplierInvoicePayload($supplier->id, $supplierOrder->id))
+            ->assertSessionHasErrors('supplier_order_id');
+    }
+
+    public function test_supplier_invoice_accepts_matching_supplier_order_and_nullable_order(): void
+    {
+        $supplier = $this->createSupplier();
+        $supplierOrder = $this->createOrder('supplier', $supplier);
+        $user = User::factory()->create();
+        $this->givePermission($user, 'faturas-fornecedores.create');
+
+        $this->actingAs($user)
+            ->from(route('supplier-invoices.index'))
+            ->post(route('supplier-invoices.store'), $this->supplierInvoicePayload($supplier->id, $supplierOrder->id))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('supplier-invoices.index'));
+
+        $this->actingAs($user)
+            ->from(route('supplier-invoices.index'))
+            ->post(route('supplier-invoices.store'), $this->supplierInvoicePayload($supplier->id, null, 'FF-2026-0002'))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('supplier-invoices.index'));
+    }
+
     public function test_proposal_pdf_requires_record_authorization(): void
     {
         $customer = Entity::query()->create([
@@ -143,6 +190,40 @@ class DocumentsModuleTest extends TestCase
             ->assertOk();
     }
 
+    public function test_repeated_supplier_order_conversion_does_not_create_duplicates(): void
+    {
+        $supplier = $this->createSupplier();
+        $order = $this->createOrder('customer', null, [
+            'status' => 'closed',
+            'line_items' => [[
+                'name' => 'Item',
+                'quantity' => 1,
+                'unit_price' => 10,
+                'supplier_entity_id' => $supplier->id,
+            ]],
+        ]);
+        $user = User::factory()->create();
+        $this->givePermission($user, 'encomendas-clientes.update');
+
+        $this->actingAs($user)
+            ->from(route('orders.customers.index'))
+            ->post(route('orders.customers.convert-suppliers', $order))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('orders.customers.index'));
+
+        $this->actingAs($user)
+            ->from(route('orders.customers.index'))
+            ->post(route('orders.customers.convert-suppliers', $order))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('orders.customers.index'));
+
+        $this->assertSame(1, Order::query()
+            ->where('kind', 'supplier')
+            ->where('source_order_id', $order->id)
+            ->where('supplier_entity_id', $supplier->id)
+            ->count());
+    }
+
     public function test_invoice_assets_require_read_permission(): void
     {
         Storage::fake('local');
@@ -169,7 +250,7 @@ class DocumentsModuleTest extends TestCase
             ->assertForbidden();
     }
 
-    private function createOrder(string $kind): Order
+    private function createOrder(string $kind, ?Entity $supplier = null, array $overrides = []): Order
     {
         $nextNumber = ((int) Entity::query()->max('number')) + 1;
 
@@ -180,14 +261,14 @@ class DocumentsModuleTest extends TestCase
             'is_active' => true,
         ]);
 
-        $supplier = Entity::query()->create([
+        $supplier ??= Entity::query()->create([
             'number' => $nextNumber + 1,
             'name' => 'Fornecedor Teste',
             'is_supplier' => true,
             'is_active' => true,
         ]);
 
-        return Order::query()->create([
+        return Order::query()->create(array_merge([
             'number' => $kind === 'customer' ? 'ENCC-2026-0001' : 'ENCF-2026-0001',
             'kind' => $kind,
             'order_date' => now()->toDateString(),
@@ -197,7 +278,30 @@ class DocumentsModuleTest extends TestCase
             'line_items' => [['name' => 'Item', 'quantity' => 1, 'unit_price' => 10]],
             'totals' => ['total' => 10],
             'status' => 'draft',
+        ], $overrides));
+    }
+
+    private function createSupplier(): Entity
+    {
+        return Entity::query()->create([
+            'number' => ((int) Entity::query()->max('number')) + 1,
+            'name' => 'Fornecedor Teste',
+            'is_supplier' => true,
+            'is_active' => true,
         ]);
+    }
+
+    private function supplierInvoicePayload(int $supplierId, ?int $orderId, string $number = 'FF-2026-0001'): array
+    {
+        return [
+            'number' => $number,
+            'invoice_date' => now()->toDateString(),
+            'due_date' => now()->addDay()->toDateString(),
+            'supplier_entity_id' => $supplierId,
+            'supplier_order_id' => $orderId,
+            'total' => 100,
+            'status' => 'pending',
+        ];
     }
 
     private function givePermission(User $user, string $permission): void
