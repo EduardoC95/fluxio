@@ -16,7 +16,7 @@ Route::inertia('/', 'Welcome', [
 Route::get('/empresa/logo', [IntegrationController::class, 'companyLogo'])->middleware('auth')->name('company.logo');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [CrmController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [CrmController::class, 'dashboard'])->middleware('can:dashboard.read')->name('dashboard');
 
     Route::get('/clientes', [CrmController::class, 'customers'])->middleware('can:clientes.read')->name('customers.index');
     Route::post('/clientes', [CrmController::class, 'storeCustomer'])->middleware('can:clientes.create')->name('customers.store');

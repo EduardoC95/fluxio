@@ -3,12 +3,16 @@
 use Illuminate\Database\Migrations\Migration;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $catalogue = [
+            'dashboard' => ['read'],
             'clientes' => ['create', 'read', 'update', 'delete'],
             'fornecedores' => ['create', 'read', 'update', 'delete'],
             'contactos' => ['create', 'read', 'update', 'delete'],
@@ -43,6 +47,8 @@ return new class extends Migration
         );
 
         $admin->syncPermissions(Permission::query()->pluck('name')->all());
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     public function down(): void

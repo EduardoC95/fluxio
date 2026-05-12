@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Models\CompanySetting;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
@@ -39,6 +38,11 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $company = $this->resolveCompany();
+        $user = $request->user();
+
+        if ($user) {
+            $user->loadMissing(['roles', 'permissions']);
+        }
 
         return [
             ...parent::share($request),
@@ -52,12 +56,10 @@ class HandleInertiaRequests extends Middleware
                 'logo_url' => route('company.logo'),
             ] : null,
             'auth' => [
-                'user' => $request->user() ? [
-                    ...$request->user()->toArray(),
-                    'roles' => $request->user()->roles instanceof Collection
-                        ? $request->user()->roles->pluck('name')->values()->all()
-                        : $request->user()->roles()->pluck('name')->all(),
-                    'permissions' => $request->user()->getPermissionNames()->values()->all(),
+                'user' => $user ? [
+                    ...$user->toArray(),
+                    'roles' => $user->getRoleNames()->values()->all(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->sort()->values()->all(),
                 ] : null,
             ],
             'flash' => [

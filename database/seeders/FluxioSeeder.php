@@ -11,11 +11,14 @@ use App\Models\VatRate;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class FluxioSeeder extends Seeder
 {
     public function run(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         foreach ([
             ['iso_code' => 'PT', 'name' => 'Portugal', 'phone_prefix' => '+351'],
             ['iso_code' => 'ES', 'name' => 'Espanha', 'phone_prefix' => '+34'],
@@ -78,30 +81,31 @@ class FluxioSeeder extends Seeder
         ]);
 
         $catalogue = [
-            'clientes',
-            'fornecedores',
-            'contactos',
-            'propostas',
-            'encomendas-clientes',
-            'encomendas-fornecedores',
-            'faturas-fornecedores',
-            'ordens-trabalho',
-            'financeiro',
-            'contas-bancarias',
-            'conta-corrente-clientes',
-            'arquivo-digital',
-            'utilizadores',
-            'permissoes',
-            'configuracoes',
-            'workspace',
-            'artigos',
-            'empresa',
-            'calendario',
-            'logs',
+            'dashboard' => ['read'],
+            'clientes' => ['create', 'read', 'update', 'delete'],
+            'fornecedores' => ['create', 'read', 'update', 'delete'],
+            'contactos' => ['create', 'read', 'update', 'delete'],
+            'propostas' => ['create', 'read', 'update', 'delete'],
+            'encomendas-clientes' => ['create', 'read', 'update', 'delete'],
+            'encomendas-fornecedores' => ['create', 'read', 'update', 'delete'],
+            'faturas-fornecedores' => ['create', 'read', 'update', 'delete'],
+            'ordens-trabalho' => ['create', 'read', 'update', 'delete'],
+            'financeiro' => ['read'],
+            'contas-bancarias' => ['create', 'read', 'update', 'delete'],
+            'conta-corrente-clientes' => ['read'],
+            'arquivo-digital' => ['create', 'read', 'update', 'delete'],
+            'utilizadores' => ['create', 'read', 'update', 'delete'],
+            'permissoes' => ['create', 'read', 'update', 'delete'],
+            'configuracoes' => ['create', 'read', 'update', 'delete'],
+            'workspace' => ['read'],
+            'artigos' => ['create', 'read', 'update', 'delete'],
+            'empresa' => ['create', 'read', 'update', 'delete'],
+            'calendario' => ['create', 'read', 'update', 'delete'],
+            'logs' => ['read'],
         ];
 
-        foreach ($catalogue as $menu) {
-            foreach (['create', 'read', 'update', 'delete'] as $ability) {
+        foreach ($catalogue as $menu => $abilities) {
+            foreach ($abilities as $ability) {
                 Permission::findOrCreate(sprintf('%s.%s', $menu, $ability), 'web');
             }
         }
@@ -112,5 +116,7 @@ class FluxioSeeder extends Seeder
         );
 
         $admin->syncPermissions(Permission::query()->pluck('name')->all());
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

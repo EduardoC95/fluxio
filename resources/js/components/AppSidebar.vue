@@ -16,6 +16,7 @@ import {
     Users,
     Wrench,
 } from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -40,7 +41,13 @@ function can(permission?: string) {
         return true;
     }
 
-    const permissions = (page.props.auth as any)?.user?.permissions ?? [];
+    const user = (page.props.auth as any)?.user;
+    const roles = user?.roles ?? [];
+    const permissions = user?.permissions ?? [];
+
+    if (roles.includes('Administrador')) {
+        return true;
+    }
 
     return permissions.includes(permission);
 }
@@ -49,7 +56,12 @@ const sections = [
     {
         label: 'Vis\u00e3o geral',
         items: [
-            { title: 'Dashboard', href: '/dashboard', icon: LayoutGrid },
+            {
+                title: 'Dashboard',
+                href: '/dashboard',
+                icon: LayoutGrid,
+                permission: 'dashboard.read',
+            },
             {
                 title: 'Calend\u00e1rio',
                 href: '/calendario',
@@ -211,6 +223,15 @@ const sections = [
         ],
     },
 ];
+
+const visibleSections = computed(() =>
+    sections
+        .map((section) => ({
+            ...section,
+            items: section.items.filter((entry) => can(entry.permission)),
+        }))
+        .filter((section) => section.items.length > 0),
+);
 </script>
 
 <template>
@@ -234,7 +255,7 @@ const sections = [
             class="mt-4 min-h-0 gap-4 overflow-x-hidden overflow-y-auto rounded-[2rem] bg-sidebar p-3 text-sidebar-foreground shadow-[0_20px_40px_rgba(40,38,48,0.22)]"
         >
             <SidebarGroup
-                v-for="section in sections"
+                v-for="section in visibleSections"
                 :key="section.label"
                 class="rounded-[1.5rem] border border-sidebar-border/50 bg-sidebar/70 px-1 py-2 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:px-0"
             >
@@ -246,9 +267,7 @@ const sections = [
                 <SidebarGroupContent class="pt-1">
                     <SidebarMenu>
                         <SidebarMenuItem
-                            v-for="item in section.items.filter((entry) =>
-                                can(entry.permission),
-                            )"
+                            v-for="item in section.items"
                             :key="item.title"
                         >
                             <SidebarMenuButton

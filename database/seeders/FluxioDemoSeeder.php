@@ -26,11 +26,14 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class FluxioDemoSeeder extends Seeder
 {
     public function run(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $this->call(FluxioSeeder::class);
 
         $countries = Country::query()->get()->keyBy('iso_code');
@@ -50,6 +53,8 @@ class FluxioDemoSeeder extends Seeder
         $this->seedInvoices($documents['supplier_orders']);
         $this->seedCalendar($users, $entities, $calendarTypes, $calendarActions);
         $this->seedActivityLog($users, $entities);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     private function seedCompany(): void
@@ -73,38 +78,69 @@ class FluxioDemoSeeder extends Seeder
      */
     private function seedPermissionGroups(): array
     {
-        $permissionNames = Permission::query()->pluck('name');
-
         $roles = [
-            'Administrador' => $permissionNames->all(),
-            'Comercial' => $permissionNames
-                ->filter(fn (string $permission): bool => str_starts_with($permission, 'clientes.')
-                    || str_starts_with($permission, 'fornecedores.')
-                    || str_starts_with($permission, 'contactos.')
-                    || str_starts_with($permission, 'propostas.')
-                    || str_starts_with($permission, 'encomendas-clientes.')
-                    || str_starts_with($permission, 'artigos.')
-                    || str_starts_with($permission, 'calendario.')
-                    || $permission === 'empresa.read'
-                    || $permission === 'logs.read')
-                ->values()
-                ->all(),
-            'Financeiro' => $permissionNames
-                ->filter(fn (string $permission): bool => str_starts_with($permission, 'faturas-fornecedores.')
-                    || str_starts_with($permission, 'encomendas-fornecedores.')
-                    || str_starts_with($permission, 'empresa.')
-                    || $permission === 'logs.read')
-                ->values()
-                ->all(),
-            'Operacoes' => $permissionNames
-                ->filter(fn (string $permission): bool => str_starts_with($permission, 'encomendas-clientes.')
-                    || str_starts_with($permission, 'encomendas-fornecedores.')
-                    || str_starts_with($permission, 'artigos.')
-                    || str_starts_with($permission, 'calendario.')
-                    || str_starts_with($permission, 'contactos.')
-                    || $permission === 'logs.read')
-                ->values()
-                ->all(),
+            'Administrador' => Permission::query()->pluck('name')->all(),
+            'Comercial' => [
+                'dashboard.read',
+                'clientes.create',
+                'clientes.read',
+                'clientes.update',
+                'fornecedores.read',
+                'contactos.create',
+                'contactos.read',
+                'contactos.update',
+                'propostas.create',
+                'propostas.read',
+                'propostas.update',
+                'encomendas-clientes.create',
+                'encomendas-clientes.read',
+                'encomendas-clientes.update',
+                'artigos.read',
+                'calendario.create',
+                'calendario.read',
+                'calendario.update',
+                'empresa.read',
+            ],
+            'Financeiro' => [
+                'dashboard.read',
+                'financeiro.read',
+                'contas-bancarias.create',
+                'contas-bancarias.read',
+                'contas-bancarias.update',
+                'conta-corrente-clientes.read',
+                'faturas-fornecedores.create',
+                'faturas-fornecedores.read',
+                'faturas-fornecedores.update',
+                'encomendas-clientes.read',
+                'encomendas-fornecedores.read',
+                'propostas.read',
+            ],
+            'Operacoes' => [
+                'dashboard.read',
+                'clientes.create',
+                'clientes.read',
+                'clientes.update',
+                'fornecedores.create',
+                'fornecedores.read',
+                'fornecedores.update',
+                'contactos.create',
+                'contactos.read',
+                'contactos.update',
+                'propostas.create',
+                'propostas.read',
+                'propostas.update',
+                'encomendas-clientes.create',
+                'encomendas-clientes.read',
+                'encomendas-clientes.update',
+                'encomendas-fornecedores.create',
+                'encomendas-fornecedores.read',
+                'encomendas-fornecedores.update',
+                'ordens-trabalho.create',
+                'ordens-trabalho.read',
+                'ordens-trabalho.update',
+                'calendario.read',
+                'artigos.read',
+            ],
         ];
 
         $createdRoles = [];

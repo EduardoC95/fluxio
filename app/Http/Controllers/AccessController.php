@@ -234,6 +234,7 @@ class AccessController extends Controller
     private function permissionCatalogue(): array
     {
         return [
+            ['slug' => 'dashboard', 'label' => 'Dashboard', 'abilities' => ['read']],
             ['slug' => 'clientes', 'label' => 'Clientes', 'abilities' => ['create', 'read', 'update', 'delete']],
             ['slug' => 'fornecedores', 'label' => 'Fornecedores', 'abilities' => ['create', 'read', 'update', 'delete']],
             ['slug' => 'contactos', 'label' => 'Contactos', 'abilities' => ['create', 'read', 'update', 'delete']],
